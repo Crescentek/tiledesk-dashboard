@@ -13,8 +13,12 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NotifyService } from '../../core/notify.service';
 import { ProjectService } from 'app/services/project.service';
-import { PLAN_NAME, tranlatedLanguage } from 'app/utils/util';
+import { APP_SUMO_PLAN_NAME, PLAN_NAME, tranlatedLanguage } from 'app/utils/util';
 import { avatarPlaceholder, getColorBck } from '../../utils/util'
+import { PricingBaseComponent } from 'app/pricing/pricing-base/pricing-base.component';
+import { ProjectPlanService } from 'app/services/project-plan.service';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { UserModalComponent } from 'app/users/user-modal/user-modal.component';
 // import { slideInOutAnimation } from '../../../_animations/index';
 @Component({
   selector: 'appdashboard-sidebar-user-details',
@@ -24,14 +28,18 @@ import { avatarPlaceholder, getColorBck } from '../../utils/util'
 })
 export class SidebarUserDetailsComponent implements OnInit {
   PLAN_NAME = PLAN_NAME
+  APP_SUMO_PLAN_NAME = APP_SUMO_PLAN_NAME
   public HAS_CLICKED_OPEN_USER_DETAIL: boolean = false;
   // @Output() onCloseUserDetailsSidebar = new EventEmitter();
   public _prjct_profile_name: string;
-  public plan_subscription_is_active: boolean;
+  public is_active_subscription: boolean;
   public plan_name: string;
   public plan_type: string;
   public isVisiblePAY: boolean;
   public prjct_name: string;
+  public trialExpired: boolean;
+  public extra3: string;
+  public appSumoProfile: string;
 
   flag_url: string;
   dsbrd_lang: string;
@@ -56,7 +64,7 @@ export class SidebarUserDetailsComponent implements OnInit {
   project; any
   youAreCurrentlySetToUnavailable: string
   private unsubscribe$: Subject<any> = new Subject<any>();
-  current_selected_prjct: any;
+  current_prjct: any;
   public_Key: any;
   currentUserId: string;
   selectedStatus: any;
@@ -65,6 +73,8 @@ export class SidebarUserDetailsComponent implements OnInit {
     { id: 2, name: 'Unavailable', avatar: 'assets/img/teammate-status/unavaible.svg' },
     { id: 3, name: 'Inactive', avatar: 'assets/img/teammate-status/inactive.svg' },
   ];
+
+  dialogRef: MatDialogRef<any>;
 
   constructor(
     public auth: AuthService,
@@ -78,9 +88,12 @@ export class SidebarUserDetailsComponent implements OnInit {
     private uploadImageNativeService: UploadImageNativeService,
     public wsRequestsService: WsRequestsService,
     private eRef: ElementRef,
-    private notify: NotifyService,
-    private projectService: ProjectService,
-  ) { }
+    public notifyService: NotifyService,
+    public projectService: ProjectService,
+    public dialog: MatDialog
+  ) {
+  //  console.log('[SIDEBAR-USER-DETAILS] !!!!! HELLO SIDEBAR-USER-DETAILS')
+  }
 
 
   ngOnInit() {
@@ -90,7 +103,7 @@ export class SidebarUserDetailsComponent implements OnInit {
     this.getCurrentProject();
     this.getProfileImageStorage();
     this.getTeammateStatus();
-    
+
     this.getUserUserIsBusy();
     this.checkUserImageExist();
     this.hasChangedAvailabilityStatusInUsersComp();
@@ -98,12 +111,49 @@ export class SidebarUserDetailsComponent implements OnInit {
     this.listenHasDeleteUserProfileImage();
     this.getUserRole();
     this.getTranslations();
+
     // this.getProjectUser()
     // this.listenTocurrentProjectUserUserAvailability$();
     this.getWsCurrentUserAvailability$()
+    this.getWsCurrentUserIsBusy$()
+  }
+
+  onMouseOutBusyIcon() {
+   
+   const busyIconEl = <HTMLElement>document.querySelector('.busy-status-tooltip');
+  //  console.log('[SIDEBAR] onMouseOutBusyIcon ', busyIconEl)
+   busyIconEl.style.opacity = "0";
+  }
+
+  onMouseOverBusyIcon() {
+    const busyIconEl = <HTMLElement>document.querySelector('.busy-status-tooltip');
+    // console.log('[SIDEBAR] onMouseOverBusyIcon ',busyIconEl)
+    busyIconEl.style.opacity = "1";
   }
 
 
+  presentDialogResetBusy(){
+    this.logger.log('[SIDEBAR] presentDialogResetBusy ')
+    if(this.dialogRef) {
+      this.dialogRef.close();
+      return
+    }
+    this.dialogRef = this.dialog.open(UserModalComponent, {
+      width: '600px',
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+      hasBackdrop: true,
+      data: {},
+    });
+
+    
+
+    this.dialogRef.afterClosed().subscribe(result => {
+      this.logger.log(`[SIDEBAR] Dialog result: ${result}`);
+      this.dialogRef = null
+    });
+
+
+  }
 
 
 
@@ -134,6 +184,7 @@ export class SidebarUserDetailsComponent implements OnInit {
         this.project = project
         this.projectId = project._id;
         this.logger.log('[SIDEBAR-USER-DETAILS] projectId ', this.projectId);
+
         this.findCurrentProjectAmongAll(this.projectId)
         // this.projectName = project.name;
       }
@@ -143,42 +194,89 @@ export class SidebarUserDetailsComponent implements OnInit {
   findCurrentProjectAmongAll(projectId: string) {
     this.projectService.getProjects().subscribe((projects: any) => {
 
-      this.current_selected_prjct = projects.find(prj => prj.id_project.id === projectId);
-      this.logger.log('[SIDEBAR] - GET PROJECTS - _current_selected_prjct ', this.current_selected_prjct);
+      this.current_prjct = projects.find(prj => prj.id_project.id === projectId);
+      this.logger.log('[SIDEBAR] - GET PROJECTS - current_prjct ', this.current_prjct);
 
 
-      if (this.current_selected_prjct) {
-        this.logger.log('[SIDEBAR] PROJECT PROFILE TYPE', this.current_selected_prjct.id_project.profile.type);
-        this.logger.log('[SIDEBAR] PROJECT PROFILE NAME', this.current_selected_prjct.id_project.profile.name);
-        this.logger.log('[SIDEBAR] PROJECT TRIAL EXPIRED', this.current_selected_prjct.id_project.trialExpired);
-        this.logger.log('[SIDEBAR] PROJECT SUBSCRIPTION IS ACTIVE', this.current_selected_prjct.id_project.isActiveSubscription);
-        this.plan_subscription_is_active = this.current_selected_prjct.id_project.isActiveSubscription;
-        this.plan_name = this.current_selected_prjct.id_project.profile.name;
-        this.plan_type = this.current_selected_prjct.id_project.profile.type;
-        this.prjct_name = this.current_selected_prjct.id_project.name;
-        if (this.current_selected_prjct.id_project.profile.type === 'free') {
-          if (this.current_selected_prjct.id_project.trialExpired === false) {
-            // this.getProPlanTrialTranslation();
-            this._prjct_profile_name = PLAN_NAME.B + " plan (trial)"
+      if (this.current_prjct) {
+        this.logger.log('[SIDEBAR] PROJECT current_prjct', this.current_prjct);
+
+        this.is_active_subscription = this.current_prjct.id_project.isActiveSubscription;
+        this.plan_name = this.current_prjct.id_project.profile.name;
+        this.plan_type = this.current_prjct.id_project.profile.type;
+        this.prjct_name = this.current_prjct.id_project.name;
+        this.trialExpired = this.current_prjct.id_project.trialExpired
+        this.extra3 = this.current_prjct.id_project.profile.extra3;
+        this.logger.log('[SIDEBAR] PROJECT is_active_subscription', this.is_active_subscription);
+        this.logger.log('[SIDEBAR] PROJECT plan_name ', this.plan_name);
+        this.logger.log('[SIDEBAR] PROJECT plan_typeD', this.plan_type);
+        this.logger.log('[SIDEBAR] PROJECT trialExpired', this.trialExpired);
+        this.logger.log('[SIDEBAR] PROJECT extra3', this.extra3);
+
+        if (this.extra3) {
+          this.appSumoProfile = APP_SUMO_PLAN_NAME[this.extra3];
+        }
+
+        if (this.plan_type === 'free') {
+          // USECASE: TRIAL ACTIVE 
+          if (this.trialExpired === false) {
+            if (this.plan_name === 'free') {
+              this._prjct_profile_name = PLAN_NAME.B + " plan (trial)"
+            } else if (this.plan_name === 'Sandbox') {
+              this._prjct_profile_name = PLAN_NAME.E + " plan (trial)"
+            }
+            // USECASE: TRIAL EXPIRED 
           } else {
-            this._prjct_profile_name = "Free plan";
-            // this.getPaidPlanTranslation(this.current_selected_prjct.id_project.profile.name);
+            if (this.plan_name === 'free') {
+              this._prjct_profile_name = "Free plan"
+            } else if (this.plan_name === 'Sandbox') {
+              this._prjct_profile_name = "Sandbox plan"
+            }
           }
-        } else if (this.current_selected_prjct.id_project.profile.type === 'payment') {
-    
-          // this.getPaidPlanTranslation(this.current_selected_prjct.id_project.profile.name);
+        } else if (this.plan_type === 'payment') {
 
-          if (this.plan_name === PLAN_NAME.A) {
-            this._prjct_profile_name = PLAN_NAME.A + " plan";
+          if (this.is_active_subscription === true) {
+            if (this.plan_name === PLAN_NAME.A) {
+              if (!this.appSumoProfile) {
+                this._prjct_profile_name = PLAN_NAME.A + " plan";
+              } else {
+                this._prjct_profile_name = PLAN_NAME.A + " plan " + '(' + this.appSumoProfile + ')';
+              }
+            } else if (this.plan_name === PLAN_NAME.B) {
+              if (!this.appSumoProfile) {
+                this._prjct_profile_name = PLAN_NAME.B + " plan";
+              } else {
+                this._prjct_profile_name = PLAN_NAME.B + " plan " + '(' + this.appSumoProfile + ')';
+              }
+            } else if (this.plan_name === PLAN_NAME.C) {
+              this._prjct_profile_name = PLAN_NAME.C + " plan";
+            } else if (this.plan_name === PLAN_NAME.D) {
+              this._prjct_profile_name = PLAN_NAME.D + " plan";
+            } else if (this.plan_name === PLAN_NAME.E) {
+              this._prjct_profile_name = PLAN_NAME.E + " plan";
+            } else if (this.plan_name === PLAN_NAME.F) {
+              this._prjct_profile_name = PLAN_NAME.F + " plan";
+            }
 
-          } else if (this.plan_name === PLAN_NAME.B) {
-            this._prjct_profile_name = PLAN_NAME.B + " plan";
-
-          } else if (this.plan_name === PLAN_NAME.C) {
-            this._prjct_profile_name = PLAN_NAME.C + " plan";
+          } else if (this.is_active_subscription === false) {
+            if (this.plan_name === PLAN_NAME.A) {
+              this._prjct_profile_name = PLAN_NAME.A + " plan";
+            } else if (this.plan_name === PLAN_NAME.B) {
+              this._prjct_profile_name = PLAN_NAME.B + " plan";
+            } else if (this.plan_name === PLAN_NAME.C) {
+              this._prjct_profile_name = PLAN_NAME.C + " plan";
+            } else if (this.plan_name === PLAN_NAME.D) {
+              this._prjct_profile_name = PLAN_NAME.D + " plan";
+            } else if (this.plan_name === PLAN_NAME.E) {
+              this._prjct_profile_name = PLAN_NAME.E + " plan";
+            } else if (this.plan_name === PLAN_NAME.F) {
+              this._prjct_profile_name = PLAN_NAME.F + " plan";
+            }
+            
           }
 
         }
+
       }
       this.logger.log('[SIDEBAR-USER-DETAILS] - GET PROJECTS - projects ', projects);
     }, error => {
@@ -188,22 +286,22 @@ export class SidebarUserDetailsComponent implements OnInit {
     });
   }
 
-  getProPlanTrialTranslation() {
-    this.translate.get('ProPlanTrial')
-      .subscribe((translation: any) => {
-        this._prjct_profile_name = translation;
+  // getProPlanTrialTranslation() {
+  //   this.translate.get('ProPlanTrial')
+  //     .subscribe((translation: any) => {
+  //       this._prjct_profile_name = translation;
 
-        this.logger.log('[SIDEBAR] PLAN NAME ', this._prjct_profile_name)
-      });
-  }
+  //       this.logger.log('[SIDEBAR] PLAN NAME ', this._prjct_profile_name)
+  //     });
+  // }
 
-  getPaidPlanTranslation(project_profile_name) {
-    this.translate.get('PaydPlanName', { projectprofile: project_profile_name })
-      .subscribe((text: string) => {
-        this._prjct_profile_name = text;
-        this.logger.log('[SIDEBAR] PLAN NAME ', this._prjct_profile_name)
-      });
-  }
+  // getPaidPlanTranslation(project_profile_name) {
+  //   this.translate.get('PaydPlanName', { projectprofile: project_profile_name })
+  //     .subscribe((text: string) => {
+  //       this._prjct_profile_name = text;
+  //       this.logger.log('[SIDEBAR] PLAN NAME ', this._prjct_profile_name)
+  //     });
+  // }
 
 
   getTranslations() {
@@ -217,7 +315,7 @@ export class SidebarUserDetailsComponent implements OnInit {
 
   logout() {
     this.closeUserDetailSidePanel()
-    this.notify.presentLogoutModal()
+    this.notifyService.presentLogoutModal()
   }
 
 
@@ -271,7 +369,7 @@ export class SidebarUserDetailsComponent implements OnInit {
   }
 
 
-  
+
   getTeammateStatus() {
 
     this.usersService.projectUser_bs.subscribe((projectUser_bs) => {
@@ -304,9 +402,11 @@ export class SidebarUserDetailsComponent implements OnInit {
       this.IS_BUSY = user_isbusy;
       // THE VALUE OS  IS_BUSY IS THEN UPDATED WITH THE VALUE RETURNED FROM THE WEBSOCKET getWsCurrentUserIsBusy$()
       // WHEN, FOR EXAMPLE IN PROJECT-SETTINGS > ADVANCED THE NUM OF MAX CHAT IS 3 AND THE 
-      this.logger.log('[SIDEBAR-USER-DETAILS] - USER IS BUSY (from db)', this.IS_BUSY);
+      // console.log('[SIDEBAR-USER-DETAILS] - USER IS BUSY (from db)', this.IS_BUSY);
     });
   }
+
+
 
   getProjectUser() {
     this.logger.log('[SIDEBAR-USER-DETAILS]  !!! SIDEBAR CALL GET-PROJECT-USER')
@@ -382,15 +482,15 @@ export class SidebarUserDetailsComponent implements OnInit {
       }, (error) => {
         this.logger.error('[SIDEBAR-USER-DETAILS] PROJECT-USER UPDATED ERR  ', error);
         // =========== NOTIFY ERROR ===========
-        // this.notify.showNotification('An error occurred while updating status', 4, 'report_problem');
-        // this.notify.showWidgetStyleUpdateNotification(this.changeAvailabilityErrorNoticationMsg, 4, 'report_problem');
+        // this.notifyService.showNotification('An error occurred while updating status', 4, 'report_problem');
+        // this.notifyService.showWidgetStyleUpdateNotification(this.changeAvailabilityErrorNoticationMsg, 4, 'report_problem');
 
       }, () => {
         this.logger.log('[SIDEBAR-USER-DETAILS] PROJECT-USER UPDATED  * COMPLETE *');
 
         // =========== NOTIFY SUCCESS===========
-        // this.notify.showNotification('status successfully updated', 2, 'done');
-        // this.notify.showWidgetStyleUpdateNotification(this.changeAvailabilitySuccessNoticationMsg, 2, 'done');
+        // this.notifyService.showNotification('status successfully updated', 2, 'done');
+        // this.notifyService.showWidgetStyleUpdateNotification(this.changeAvailabilitySuccessNoticationMsg, 2, 'done');
 
 
 
@@ -415,15 +515,15 @@ export class SidebarUserDetailsComponent implements OnInit {
   //   }, (error) => {
   //     this.logger.error('[SIDEBAR-USER-DETAILS] PROJECT-USER UPDATED ERR  ', error);
   //     // =========== NOTIFY ERROR ===========
-  //     // this.notify.showNotification('An error occurred while updating status', 4, 'report_problem');
-  //     // this.notify.showWidgetStyleUpdateNotification(this.changeAvailabilityErrorNoticationMsg, 4, 'report_problem');
+  //     // this.notifyService.showNotification('An error occurred while updating status', 4, 'report_problem');
+  //     // this.notifyService.showWidgetStyleUpdateNotification(this.changeAvailabilityErrorNoticationMsg, 4, 'report_problem');
 
   //   }, () => {
   //     this.logger.log('[SIDEBAR-USER-DETAILS] PROJECT-USER UPDATED  * COMPLETE *');
 
   //     // =========== NOTIFY SUCCESS===========
-  //     // this.notify.showNotification('status successfully updated', 2, 'done');
-  //     // this.notify.showWidgetStyleUpdateNotification(this.changeAvailabilitySuccessNoticationMsg, 2, 'done');
+  //     // this.notifyService.showNotification('status successfully updated', 2, 'done');
+  //     // this.notifyService.showWidgetStyleUpdateNotification(this.changeAvailabilitySuccessNoticationMsg, 2, 'done');
 
 
   //     // this.getUserAvailability()
@@ -435,7 +535,7 @@ export class SidebarUserDetailsComponent implements OnInit {
 
 
   subsTo_WsCurrentUser(currentuserprjctuserid) {
-    this.logger.log('[SIDEBAR-USER-DETAILS] - SUBSCRIBE TO WS CURRENT-USER AVAILABILITY  prjct user id of current user ', currentuserprjctuserid);
+    // console.log('[SIDEBAR-USER-DETAILS] - SUBSCRIBE TO WS CURRENT-USER AVAILABILITY  prjct user id of current user ', currentuserprjctuserid);
     // this.usersService.subscriptionToWsCurrentUser(currentuserprjctuserid);
     this.wsRequestsService.subscriptionToWsCurrentUser(currentuserprjctuserid);
 
@@ -448,34 +548,34 @@ export class SidebarUserDetailsComponent implements OnInit {
   getWsCurrentUserAvailability$() {
     // this.usersService.currentUserWsAvailability$
     this.wsRequestsService.currentUserWsAvailability$
-        .pipe(
-            takeUntil(this.unsubscribe$)
-        )
-        .subscribe((projectUser) => {
-            // this.logger..log('[SIDEBAR] - GET WS CURRENT-USER - data ', data);
-            if (projectUser) {
-              if (projectUser['user_available'] === false && projectUser['profileStatus'] === 'inactive') {
-                // this.logger..log('teammateStatus ', this.teammateStatus) 
-                this.selectedStatus = this.teammateStatus[2].id;
-                //  this.logger..log('[SIDEBAR-USER-DETAILS] - PROFILE_STATUS selected option', this.teammateStatus[2].name);
-                this.teammateStatus = this.teammateStatus.slice(0)
-              } else if (projectUser['user_available'] === false && (projectUser['profileStatus'] === '' || !projectUser['profileStatus'])) {
-                this.selectedStatus = this.teammateStatus[1].id;
-                //  this.logger..log('[SIDEBAR-USER-DETAILS] - PROFILE_STATUS selected option', this.teammateStatus[1].name);
-                this.teammateStatus = this.teammateStatus.slice(0)
-              } else if (projectUser['user_available'] === true && (projectUser['profileStatus'] === '' || !projectUser['profileStatus'])) {
-                this.selectedStatus = this.teammateStatus[0].id
-                this.teammateStatus = this.teammateStatus.slice(0)
-                // this.logger..log('[SIDEBAR-USER-DETAILS] - PROFILE_STATUS selected option', this.teammateStatus[0].name);
-              }
-    
-            }
-        }, error => {
-            this.logger.error('[SIDEBAR] - GET WS CURRENT-USER AVAILABILITY * error * ', error)
-        }, () => {
-            this.logger.log('[SIDEBAR] - GET WS CURRENT-USER AVAILABILITY *** complete *** ')
-        });
-}
+      .pipe(
+        takeUntil(this.unsubscribe$)
+      )
+      .subscribe((projectUser) => {
+        // console.log('[SIDEBAR-USER-DETAILS] - GET WS CURRENT-USER - projectUser ', projectUser);
+        if (projectUser) {
+          if (projectUser['user_available'] === false && projectUser['profileStatus'] === 'inactive') {
+            // this.logger..log('teammateStatus ', this.teammateStatus) 
+            this.selectedStatus = this.teammateStatus[2].id;
+            //  this.logger..log('[SIDEBAR-USER-DETAILS] - PROFILE_STATUS selected option', this.teammateStatus[2].name);
+            this.teammateStatus = this.teammateStatus.slice(0)
+          } else if (projectUser['user_available'] === false && (projectUser['profileStatus'] === '' || !projectUser['profileStatus'])) {
+            this.selectedStatus = this.teammateStatus[1].id;
+            //  this.logger..log('[SIDEBAR-USER-DETAILS] - PROFILE_STATUS selected option', this.teammateStatus[1].name);
+            this.teammateStatus = this.teammateStatus.slice(0)
+          } else if (projectUser['user_available'] === true && (projectUser['profileStatus'] === '' || !projectUser['profileStatus'])) {
+            this.selectedStatus = this.teammateStatus[0].id
+            this.teammateStatus = this.teammateStatus.slice(0)
+            // this.logger..log('[SIDEBAR-USER-DETAILS] - PROFILE_STATUS selected option', this.teammateStatus[0].name);
+          }
+
+        }
+      }, error => {
+        this.logger.error('[SIDEBAR] - GET WS CURRENT-USER AVAILABILITY * error * ', error)
+      }, () => {
+        this.logger.log('[SIDEBAR] - GET WS CURRENT-USER AVAILABILITY *** complete *** ')
+      });
+  }
 
   getWsCurrentUserIsBusy$() {
     // this.usersService.currentUserWsIsBusy$
@@ -484,10 +584,10 @@ export class SidebarUserDetailsComponent implements OnInit {
         takeUntil(this.unsubscribe$)
       )
       .subscribe((currentuser_isbusy) => {
-        // this.logger.log('[SIDEBAR] - GET WS CURRENT-USER - currentuser_isbusy? ', currentuser_isbusy);
+        // console.log('[SIDEBAR-USER-DETAILS] - GET WS CURRENT-USER - currentuser_isbusy? ', currentuser_isbusy);
         if (currentuser_isbusy !== null) {
           this.IS_BUSY = currentuser_isbusy;
-          // this.logger.log('[SIDEBAR] - GET WS CURRENT-USER (from ws)- this.IS_BUSY? ', this.IS_BUSY);
+          // console.log('[SIDEBAR-USER-DETAILS] - GET WS CURRENT-USER (from ws)- this.IS_BUSY? ', this.IS_BUSY);
         }
       }, error => {
         this.logger.error('[SIDEBAR-USER-DETAILS] - GET WS CURRENT-USER IS BUSY * error * ', error)
@@ -594,7 +694,7 @@ export class SidebarUserDetailsComponent implements OnInit {
   }
 
 
- 
+
   goToUserProfileLanguageSection() {
     this.router.navigate(['project/' + this.projectId + '/user-profile'], { fragment: 'language' });
     this.closeUserDetailSidePanel();

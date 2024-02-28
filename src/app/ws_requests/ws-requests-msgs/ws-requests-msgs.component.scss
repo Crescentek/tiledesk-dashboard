@@ -898,7 +898,7 @@ button.close {
 
 /* When the checkbox is checked, add a blue background */
 .checkbox-container input:checked~.checkmark {
-  background-color: #2196f3;
+  background-color: var(--blue-light);
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */
@@ -3245,6 +3245,10 @@ span .conv-svg-icon {
 
 .chat-header-wpr-btn {
   padding-right: 0px;
+}
+
+.chat-header-footer-wpr-btn {
+  padding-right: 15px;
 }
 
 .caret-rotate-180 {

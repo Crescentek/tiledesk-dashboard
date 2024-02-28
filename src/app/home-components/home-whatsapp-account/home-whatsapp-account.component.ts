@@ -315,133 +315,113 @@ export class HomeWhatsappAccountComponent implements OnInit, OnChanges {
   }
 
 
-  installApp() {
-    if ((this.appTitle === "WhatsApp Business" || this.appTitle === "Facebook Messenger" || this.appTitle === "Zapier" || this.appTitle === 'Help Center') &&
-      ((this.profile_name === PLAN_NAME.A) ||
-        (this.profile_name === PLAN_NAME.B && this.subscription_is_active === false) ||
-        (this.profile_name === PLAN_NAME.C && this.subscription_is_active === false) ||
-        (this.prjct_profile_type === 'free' && this.trial_expired === true))) {
+  // installApp() {
+  //   if ((this.appTitle === "WhatsApp Business" || this.appTitle === "Facebook Messenger" || this.appTitle === "Zapier" || this.appTitle === 'Help Center') &&
+  //     ((this.profile_name === PLAN_NAME.A) ||
+  //       (this.profile_name === PLAN_NAME.B && this.subscription_is_active === false) ||
+  //       (this.profile_name === PLAN_NAME.C && this.subscription_is_active === false) ||
+  //       (this.prjct_profile_type === 'free' && this.trial_expired === true))) {
 
-      if (!this.appSumoProfile) {
-        this.presentModalFeautureAvailableFromBPlan()
-        return
-      } else {
-        this.presentModalAppSumoFeautureAvailableFromBPlan()
-        return
-      }
-    }
+  //     if (!this.appSumoProfile) {
+  //       this.presentModalFeautureAvailableFromBPlan()
+  //       return
+  //     } else {
+  //       this.presentModalAppSumoFeautureAvailableFromBPlan()
+  //       return
+  //     }
+  //   }
 
-    this.logger.log('[HOME-WA] appId ', this.whatsAppAppId)
-    this.logger.log('[HOME-WA] app app version', this.appVersion)
-    this.logger.log('[HOME-WA] installationType ', this.installActionType);
+  //   this.logger.log('[HOME-WA] appId ', this.whatsAppAppId)
+  //   this.logger.log('[HOME-WA] app app version', this.appVersion)
+  //   this.logger.log('[HOME-WA] installationType ', this.installActionType);
 
-    // this.installV2App(this.projectId, this.whatsAppAppId)
+  //   // this.installV2App(this.projectId, this.whatsAppAppId)
 
-  }
-
-
+  // }
 
 
-  openInAppStoreInstall() {
-    if ((this.appTitle === "WhatsApp Business" || this.appTitle === "Facebook Messenger") &&
-      ((this.profile_name === PLAN_NAME.A) ||
-        (this.profile_name === PLAN_NAME.B && this.subscription_is_active === false) ||
-        (this.profile_name === PLAN_NAME.C && this.subscription_is_active === false) ||
-        (this.prjct_profile_type === 'free' && this.trial_expired === true))) {
-      // this.presentModalFeautureAvailableFromBPlan()
-      // return
-      if (!this.appSumoProfile) {
-        this.presentModalFeautureAvailableFromBPlan()
-        return
-      } else {
-        this.presentModalAppSumoFeautureAvailableFromBPlan()
-        return
-      }
 
-    }
 
-    if (this.appTitle === "WhatsApp Business" || this.appTitle === "Facebook Messenger") {
-      this.router.navigate(['project/' + this.projectId + '/app-store-install/' + this.whatsAppAppId + '/connect/h'])
-    }
+  // openInAppStoreInstall() {
+  //   if ((this.appTitle === "WhatsApp Business" || this.appTitle === "Facebook Messenger") &&
+  //     ((this.profile_name === PLAN_NAME.A) ||
+  //       (this.profile_name === PLAN_NAME.B && this.subscription_is_active === false) ||
+  //       (this.profile_name === PLAN_NAME.C && this.subscription_is_active === false) ||
+  //       (this.prjct_profile_type === 'free' && this.trial_expired === true))) {
+  //     // this.presentModalFeautureAvailableFromBPlan()
+  //     // return
+  //     if (!this.appSumoProfile) {
+  //       this.presentModalFeautureAvailableFromBPlan()
+  //       return
+  //     } else {
+  //       this.presentModalAppSumoFeautureAvailableFromBPlan()
+  //       return
+  //     }
+
+  //   }
+
+  //   if (this.appTitle === "WhatsApp Business" || this.appTitle === "Facebook Messenger") {
+  //     this.router.navigate(['project/' + this.projectId + '/app-store-install/' + this.whatsAppAppId + '/connect/h'])
+  //   }
   
-  }
+  // }
 
 
 
   unistallApp() {
-
     this.onClickOnUnistallApp.emit()
-  //   this.logger.log('[HOME-WA] UNINSTALL V2 APP - app_id', this.whatsAppAppId);
-    // this.appStoreService.unistallNewApp(this.projectId, this.whatsAppAppId).subscribe((res: any) => {
-    //   this.logger.log('[HOME-WA] UNINSTALL V2 APP - app_id - RES', res);
 
-    // }, (error) => {
-    //   this.logger.error('[HOME-WA] UNINSTALL V2 APP - ERROR  ', error);
-    //   this.notify.showWidgetStyleUpdateNotification("An error occurred while uninstalling the app", 4, 'report_problem');
-    // }, () => {
-    //   this.logger.log('[HOME-WA] UNINSTALL V2 APP - COMPLETE');
-    //   this.notify.showWidgetStyleUpdateNotification("App uninstalled successfully", 2, 'done');
-
-    //   this.whatsAppIsInstalled = false
-    //   // let index = this.apps.findIndex(x => x._id === appId);
-    //   // // this.apps[index].installed = false;
-    //   // // this.apps[index].version = 'v2';
-    //   // setTimeout(() => {
-    //   //   this.apps[index].installed = false;
-    //   // }, 1000);
-
-    // });
   }
 
 
-  presentModalFeautureAvailableFromBPlan() {
-    const el = document.createElement('div')
-    el.innerHTML = this.featureAvailableFromBPlan
-    swal({
-      // title: this.onlyOwnerCanManageTheAccountPlanMsg,
-      content: el,
-      icon: "info",
-      // buttons: true,
-      buttons: {
-        cancel: this.cancel,
-        catch: {
-          text: this.upgradePlan,
-          value: "catch",
-        },
-      },
-      dangerMode: false,
-    }).then((value) => {
-      if (value === 'catch') {
-        // this.logger.log('featureAvailableFromPlanC value', value)
-        // this.logger.log('[HOME-WA] prjct_profile_type', this.prjct_profile_type)
-        // this.logger.log('[HOME-WA] subscription_is_active', this.subscription_is_active)
-        // this.logger.log('[HOME-WA] prjct_profile_type', this.prjct_profile_type)
-        // this.logger.log('[HOME-WA] trial_expired', this.trial_expired)
-        // this.logger.log('[HOME-WA] isVisiblePAY', this.isVisiblePAY)
-        if (this.isVisiblePAY) {
-          // this.logger.log('[HOME-WA] HERE 1')
-          if (this.USER_ROLE === 'owner') {
-            // this.logger.log('[HOME-WA] HERE 2')
-            if (this.prjct_profile_type === 'payment' && this.subscription_is_active === false) {
-              // this.logger.log('[HOME-WA] HERE 3')
-              this.notify._displayContactUsModal(true, 'upgrade_plan');
-            } else if (this.prjct_profile_type === 'payment' && this.subscription_is_active === true && this.profile_name === PLAN_NAME.A) {
-              this.notify._displayContactUsModal(true, 'upgrade_plan');
-            } else if (this.prjct_profile_type === 'free' && this.trial_expired === true) {
-              // this.logger.log('[HOME-WA] HERE 4')
-              this.router.navigate(['project/' + this.projectId + '/pricing']);
-            }
-          } else {
-            // this.logger.log('[HOME-WA] HERE 5')
-            this.presentModalAgentCannotManageAvancedSettings();
-          }
-        } else {
-          // this.logger.log('[HOME-WA] HERE 6')
-          this.notify._displayContactUsModal(true, 'upgrade_plan');
-        }
-      }
-    });
-  }
+  // presentModalFeautureAvailableFromBPlan() {
+  //   const el = document.createElement('div')
+  //   el.innerHTML = this.featureAvailableFromBPlan
+  //   swal({
+  //     // title: this.onlyOwnerCanManageTheAccountPlanMsg,
+  //     content: el,
+  //     icon: "info",
+  //     // buttons: true,
+  //     buttons: {
+  //       cancel: this.cancel,
+  //       catch: {
+  //         text: this.upgradePlan,
+  //         value: "catch",
+  //       },
+  //     },
+  //     dangerMode: false,
+  //   }).then((value) => {
+  //     if (value === 'catch') {
+  //       // this.logger.log('featureAvailableFromPlanC value', value)
+  //       // this.logger.log('[HOME-WA] prjct_profile_type', this.prjct_profile_type)
+  //       // this.logger.log('[HOME-WA] subscription_is_active', this.subscription_is_active)
+  //       // this.logger.log('[HOME-WA] prjct_profile_type', this.prjct_profile_type)
+  //       // this.logger.log('[HOME-WA] trial_expired', this.trial_expired)
+  //       // this.logger.log('[HOME-WA] isVisiblePAY', this.isVisiblePAY)
+  //       if (this.isVisiblePAY) {
+  //         // this.logger.log('[HOME-WA] HERE 1')
+  //         if (this.USER_ROLE === 'owner') {
+  //           // this.logger.log('[HOME-WA] HERE 2')
+  //           if (this.prjct_profile_type === 'payment' && this.subscription_is_active === false) {
+  //             // this.logger.log('[HOME-WA] HERE 3')
+  //             this.notify._displayContactUsModal(true, 'upgrade_plan');
+  //           } else if (this.prjct_profile_type === 'payment' && this.subscription_is_active === true && this.profile_name === PLAN_NAME.A) {
+  //             this.notify._displayContactUsModal(true, 'upgrade_plan');
+  //           } else if (this.prjct_profile_type === 'free' && this.trial_expired === true) {
+  //             // this.logger.log('[HOME-WA] HERE 4')
+  //             this.router.navigate(['project/' + this.projectId + '/pricing']);
+  //           }
+  //         } else {
+  //           // this.logger.log('[HOME-WA] HERE 5')
+  //           this.presentModalAgentCannotManageAvancedSettings();
+  //         }
+  //       } else {
+  //         // this.logger.log('[HOME-WA] HERE 6')
+  //         this.notify._displayContactUsModal(true, 'upgrade_plan');
+  //       }
+  //     }
+  //   });
+  // }
 
 
   presentModalAgentCannotManageAvancedSettings() {
@@ -479,25 +459,25 @@ export class HomeWhatsappAccountComponent implements OnInit, OnChanges {
   }
 
 
-  installV2App(projectId, appId) {
+  // installV2App(projectId, appId) {
 
-    this.appStoreService.installAppVersionTwo(projectId, appId).subscribe((res: any) => {
-      this.logger.log('[HOME-WA] INSTALL V2 APP projectId ', projectId, 'appId ', appId)
+  //   this.appStoreService.installAppVersionTwo(projectId, appId).subscribe((res: any) => {
+  //     this.logger.log('[HOME-WA] INSTALL V2 APP projectId ', projectId, 'appId ', appId)
 
-    }, (error) => {
-      this.logger.error('[HOME-WA] INSTALL V2 APP - ERROR  ', error);
-      this.notify.showWidgetStyleUpdateNotification("An error occurred while creating the app", 4, 'report_problem');
-    }, () => {
-      this.logger.log('[HOME-WA] INSTALL V2 APP - COMPLETE');
-      this.notify.showWidgetStyleUpdateNotification("App installed successfully", 2, 'done');
-      // let index = this.apps.findIndex(x => x._id === appId);
-      // // this.apps[index].installed = false;
-      // // this.apps[index].version = 'v2';
-      // setTimeout(() => {
-      //   this.apps[index].installed = true;
-      // }, 1000);
-      this.whatsAppIsInstalled = true;
-    });
-  }
+  //   }, (error) => {
+  //     this.logger.error('[HOME-WA] INSTALL V2 APP - ERROR  ', error);
+  //     this.notify.showWidgetStyleUpdateNotification("An error occurred while creating the app", 4, 'report_problem');
+  //   }, () => {
+  //     this.logger.log('[HOME-WA] INSTALL V2 APP - COMPLETE');
+  //     this.notify.showWidgetStyleUpdateNotification("App installed successfully", 2, 'done');
+  //     // let index = this.apps.findIndex(x => x._id === appId);
+  //     // // this.apps[index].installed = false;
+  //     // // this.apps[index].version = 'v2';
+  //     // setTimeout(() => {
+  //     //   this.apps[index].installed = true;
+  //     // }, 1000);
+  //     this.whatsAppIsInstalled = true;
+  //   });
+  // }
 
 }

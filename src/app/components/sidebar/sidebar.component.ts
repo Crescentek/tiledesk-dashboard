@@ -32,6 +32,10 @@ import { LoggerService } from './../../services/logger/logger.service';
 import { avatarPlaceholder, getColorBck } from '../../utils/util'
 import { DomSanitizer } from '@angular/platform-browser';
 import { FaqKbService } from 'app/services/faq-kb.service';
+import { KbSettings } from 'app/models/kbsettings-model';
+import { KnowledgeBaseService } from 'app/services/knowledge-base.service';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { UserModalComponent } from 'app/users/user-modal/user-modal.component';
 
 declare const $: any;
 
@@ -184,6 +188,12 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   CONV_DETAIL_ROUTE_IS_ACTIVE: boolean;
   CONTACT_EDIT_ROUTE_IS_ACTIVE: boolean;
   CONTACT_CONVS_ROUTE_IS_ACTIVE: boolean;
+  INTEGRATIONS_ROUTE_IS_ACTIVE: boolean;
+  INSTALLATION_ROUTE_IS_ACTIVE: boolean;
+  EMAIL_TICKETING_ROUTE_IS_ACTIVE: boolean;
+  AUTOMATIONS_ROUTE_IS_ACTIVE: boolean;
+  KB_ROUTE_IS_ACTIVE: boolean;
+  
 
   IS_REQUEST_FOR_PANEL_ROUTE: boolean;
   IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE: boolean;
@@ -205,6 +215,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   isVisiblePAY: boolean;
   isVisibleMON: boolean;
   isVisibleCNT: boolean;
+  isVisibleINT: boolean;
   storageBucket: string;
   baseUrl: string;
   default_dept_id: string;
@@ -230,6 +241,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   myChatbotCount: number;
   companySiteUrl: string;
   companyName: string;
+  dialogRef: MatDialogRef<any>;
   constructor(
     private router: Router,
     public location: Location,
@@ -243,12 +255,13 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     private uploadImageNativeService: UploadImageNativeService,
     private translate: TranslateService,
     public appConfigService: AppConfigService,
-
+    private kbService: KnowledgeBaseService,
     public brandService: BrandService,
     public wsRequestsService: WsRequestsService,
     private logger: LoggerService,
     private sanitizer: DomSanitizer,
     private faqKbService: FaqKbService,
+    public dialog: MatDialog
   ) {
     this.logger.log('[SIDEBAR] !!!!! HELLO SIDEBAR')
 
@@ -288,8 +301,30 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     this.listenSoundPreference();
     this.getNotificationSoundPreferences();
     this.getWsCurrentUserAvailability$();
+    
   }
 
+
+  presentDialogResetBusy(){
+    this.logger.log('[SIDEBAR] presentDialogResetBusy ')
+    if(this.dialogRef) {
+      this.dialogRef.close();
+      return
+    }
+    this.dialogRef = this.dialog.open(UserModalComponent, {
+      width: '600px',
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+      hasBackdrop: true,
+      data: {
+       
+      },
+    });
+
+    this.dialogRef.afterClosed().subscribe(result => {
+      this.logger.log(`[SIDEBAR] Dialog result: ${result}`);
+      this.dialogRef = null
+    });
+  }
 
   getNotificationSoundPreferences() {
     // NOTIFICATION_SOUND = 'enabled';
@@ -336,7 +371,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
             this.audio = new Audio();
 
             this.audio.src = 'assets/pling.mp3';
-            // console.log('sidebar audio src ',  this.audio.src )
+            // this.logger.log('sidebar audio src ',  this.audio.src )
             this.audio.load();
 
             this.audio.play().then(() => {
@@ -365,7 +400,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 
   getLoggedUser() {
     this.auth.user_bs.subscribe((user) => {
-      // console.log('[SIDEBAR] USER GET IN SIDEBAR ', user)
+      // this.logger.log('[SIDEBAR] USER GET IN SIDEBAR ', user)
       this.user = user;
       if (user) {
         this.createUserAvatar(user)
@@ -564,7 +599,20 @@ export class SidebarComponent implements OnInit, AfterViewInit {
           this.isVisibleCNT = true;
         }
       }
+
+      if (key.includes("INT")) {
+        let int = key.split(":");
+        if (int[1] === "F") {
+          this.isVisibleINT = false;
+        } else {
+          this.isVisibleINT = true;
+        }
+      }
     });
+
+    if (!this.public_Key.includes("INT")) {
+      this.isVisibleINT = false;
+    }
 
     if (!this.public_Key.includes("CAR")) {
       this.isVisibleCAR = false;
@@ -589,7 +637,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     }
 
 
-    
+
   }
 
 
@@ -598,22 +646,22 @@ export class SidebarComponent implements OnInit, AfterViewInit {
       if (event instanceof NavigationEnd) {
         if (event.url.indexOf('/request-for-panel') !== -1) {
           this.IS_REQUEST_FOR_PANEL_ROUTE = true;
-          // console.log('[NAVBAR] NavigationEnd - IS_REQUEST_FOR_PANEL_ROUTE  ', this.IS_REQUEST_FOR_PANEL_ROUTE);
+          // this.logger.log('[NAVBAR] NavigationEnd - IS_REQUEST_FOR_PANEL_ROUTE  ', this.IS_REQUEST_FOR_PANEL_ROUTE);
         } else {
           this.IS_REQUEST_FOR_PANEL_ROUTE = false;
-          // console.log('[NAVBAR] NavigationEnd - IS_REQUEST_FOR_PANEL_ROUTE  ', this.IS_REQUEST_FOR_PANEL_ROUTE);
+          // this.logger.log('[NAVBAR] NavigationEnd - IS_REQUEST_FOR_PANEL_ROUTE  ', this.IS_REQUEST_FOR_PANEL_ROUTE);
         }
 
         if (event.url.indexOf('/unserved-request-for-panel') !== -1) {
           this.IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE = true;
-          // console.log('[SIDEBAR] NavigationEnd - IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE  ', this.IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE  ', this.IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE);
         } else {
           this.IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE = false;
-          // console.log('[SIDEBAR] NavigationEnd- IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE  ', this.IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE);
+          // this.logger.log('[SIDEBAR] NavigationEnd- IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE  ', this.IS_UNSERVEDREQUEST_FOR_PANEL_ROUTE);
         }
 
         if (event.url.indexOf('/autologin') !== -1) {
-          // console.log('[SIDEBAR] NavigationEnd - THE activities-demo route IS ACTIVE  ', event.url);
+          // this.logger.log('[SIDEBAR] NavigationEnd - THE activities-demo route IS ACTIVE  ', event.url);
           this.AUTOLOGIN_ROUTE_IS_ACTIVE = true;
 
         } else {
@@ -703,207 +751,250 @@ export class SidebarComponent implements OnInit, AfterViewInit {
         if (event.url.indexOf('/trigger') !== -1) {
           // this.logger.log('[SIDEBAR] NavigationEnd - THE home route IS ACTIVE  ', event.url);
           this.TRIGGER_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - TRIGGER_ROUTE_IS_ACTIVE ', this.TRIGGER_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - TRIGGER_ROUTE_IS_ACTIVE ', this.TRIGGER_ROUTE_IS_ACTIVE);
         } else {
           // this.logger.log('[SIDEBAR] NavigationEnd - THE home route IS NOT ACTIVE  ', event.url);
           this.TRIGGER_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - TRIGGER_ROUTE_IS_ACTIVE ', this.TRIGGER_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - TRIGGER_ROUTE_IS_ACTIVE ', this.TRIGGER_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/labels') !== -1) {
           this.TAG_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - TAG_ROUTE_IS_ACTIVE ', this.TAG_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - TAG_ROUTE_IS_ACTIVE ', this.TAG_ROUTE_IS_ACTIVE);
         } else {
           this.TAG_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - TAG_ROUTE_IS_ACTIVE ', this.TAG_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - TAG_ROUTE_IS_ACTIVE ', this.TAG_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/cannedresponses') !== -1) {
           this.CANNED_RESPONSES_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - CANNED_RESPONSES_ROUTE_IS_ACTIVE ', this.CANNED_RESPONSES_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CANNED_RESPONSES_ROUTE_IS_ACTIVE ', this.CANNED_RESPONSES_ROUTE_IS_ACTIVE);
         } else {
           this.CANNED_RESPONSES_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - CANNED_RESPONSES_ROUTE_IS_ACTIVE ', this.CANNED_RESPONSES_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CANNED_RESPONSES_ROUTE_IS_ACTIVE ', this.CANNED_RESPONSES_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/departments') !== -1) {
           this.DEPTS_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - DEPTS_ROUTE_IS_ACTIVE ', this.DEPTS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - DEPTS_ROUTE_IS_ACTIVE ', this.DEPTS_ROUTE_IS_ACTIVE);
         } else {
           this.DEPTS_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - DEPTS_ROUTE_IS_ACTIVE ', this.DEPTS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - DEPTS_ROUTE_IS_ACTIVE ', this.DEPTS_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/department/edit/') !== -1) {
           this.EDIT_DEPT_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - EDIT_DEPT_ROUTE_IS_ACTIVE ', this.EDIT_DEPT_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - EDIT_DEPT_ROUTE_IS_ACTIVE ', this.EDIT_DEPT_ROUTE_IS_ACTIVE);
         } else {
           this.EDIT_DEPT_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - EDIT_DEPT_ROUTE_IS_ACTIVE ', this.EDIT_DEPT_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - EDIT_DEPT_ROUTE_IS_ACTIVE ', this.EDIT_DEPT_ROUTE_IS_ACTIVE);
         }
 
 
         if (event.url.indexOf('/users') !== -1) {
           this.TEAMMATES_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - TEAMMATES_ROUTE_IS_ACTIVE ', this.TEAMMATES_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - TEAMMATES_ROUTE_IS_ACTIVE ', this.TEAMMATES_ROUTE_IS_ACTIVE);
         } else {
           this.TEAMMATES_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - TEAMMATES_ROUTE_IS_ACTIVE ', this.TEAMMATES_ROUTE_IS_ACTIVE);;
+          // this.logger.log('[SIDEBAR] NavigationEnd - TEAMMATES_ROUTE_IS_ACTIVE ', this.TEAMMATES_ROUTE_IS_ACTIVE);;
         }
 
         if (event.url.indexOf('/groups') !== -1) {
           this.GROUPS_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - GROUPS_ROUTE_IS_ACTIVE ', this.GROUPS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - GROUPS_ROUTE_IS_ACTIVE ', this.GROUPS_ROUTE_IS_ACTIVE);
         } else {
           this.GROUPS_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - GROUPS_ROUTE_IS_ACTIVE ', this.GROUPS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - GROUPS_ROUTE_IS_ACTIVE ', this.GROUPS_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/group/create') !== -1) {
           this.CREATE_GROUP_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - CREATE_GROUP_ROUTE_IS_ACTIVE ', this.CREATE_GROUP_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CREATE_GROUP_ROUTE_IS_ACTIVE ', this.CREATE_GROUP_ROUTE_IS_ACTIVE);
         } else {
           this.CREATE_GROUP_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - CREATE_GROUP_ROUTE_IS_ACTIVE ', this.CREATE_GROUP_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CREATE_GROUP_ROUTE_IS_ACTIVE ', this.CREATE_GROUP_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/group/edit') !== -1) {
           this.EDIT_GROUP_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - EDIT_GROUP_ROUTE_IS_ACTIVE ', this.EDIT_GROUP_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - EDIT_GROUP_ROUTE_IS_ACTIVE ', this.EDIT_GROUP_ROUTE_IS_ACTIVE);
         } else {
           this.EDIT_GROUP_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - EDIT_GROUP_ROUTE_IS_ACTIVE ', this.EDIT_GROUP_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - EDIT_GROUP_ROUTE_IS_ACTIVE ', this.EDIT_GROUP_ROUTE_IS_ACTIVE);
         }
 
 
         if (event.url.indexOf('/widget-set-up') !== -1) {
           this.WIDGET_SETUP_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - WIDGET_SETUP_ROUTE_IS_ACTIVE ', this.WIDGET_SETUP_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - WIDGET_SETUP_ROUTE_IS_ACTIVE ', this.WIDGET_SETUP_ROUTE_IS_ACTIVE);
         } else {
           this.WIDGET_SETUP_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - WIDGET_SETUP_ROUTE_IS_ACTIVE ', this.WIDGET_SETUP_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - WIDGET_SETUP_ROUTE_IS_ACTIVE ', this.WIDGET_SETUP_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/bots') !== -1) {
           this.CHATBOT_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - CHATBOT_ROUTE_IS_ACTIVE ', this.CHATBOT_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CHATBOT_ROUTE_IS_ACTIVE ', this.CHATBOT_ROUTE_IS_ACTIVE);
         } else {
           this.CHATBOT_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - CHATBOT_ROUTE_IS_ACTIVE ', this.CHATBOT_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CHATBOT_ROUTE_IS_ACTIVE ', this.CHATBOT_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/createfaq') !== -1) {
           this.CREATE_FAQ_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - CREATE_FAQ_ROUTE_IS_ACTIVE ', this.CREATE_FAQ_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CREATE_FAQ_ROUTE_IS_ACTIVE ', this.CREATE_FAQ_ROUTE_IS_ACTIVE);
         } else {
           this.CREATE_FAQ_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - CREATE_FAQ_ROUTE_IS_ACTIVE ', this.CREATE_FAQ_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CREATE_FAQ_ROUTE_IS_ACTIVE ', this.CREATE_FAQ_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/editfaq') !== -1) {
           this.EDIT_FAQ_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - EDIT_FAQ_ROUTE_IS_ACTIVE ', this.EDIT_FAQ_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - EDIT_FAQ_ROUTE_IS_ACTIVE ', this.EDIT_FAQ_ROUTE_IS_ACTIVE);
         } else {
           this.EDIT_FAQ_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - EDIT_FAQ_ROUTE_IS_ACTIVE ', this.EDIT_FAQ_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - EDIT_FAQ_ROUTE_IS_ACTIVE ', this.EDIT_FAQ_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/faq/test/') !== -1) {
           this.BOT_TEST_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - BOT_TEST_ROUTE_IS_ACTIVE ', this.BOT_TEST_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - BOT_TEST_ROUTE_IS_ACTIVE ', this.BOT_TEST_ROUTE_IS_ACTIVE);
         } else {
           this.BOT_TEST_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - BOT_TEST_ROUTE_IS_ACTIVE ', this.BOT_TEST_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - BOT_TEST_ROUTE_IS_ACTIVE ', this.BOT_TEST_ROUTE_IS_ACTIVE);
         }
 
 
         if (event.url.indexOf('/hours') !== -1) {
           this.OPERATING_HOURS_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - OPERATING_HOURS_ROUTE_IS_ACTIVE ', this.OPERATING_HOURS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - OPERATING_HOURS_ROUTE_IS_ACTIVE ', this.OPERATING_HOURS_ROUTE_IS_ACTIVE);
         } else {
           this.OPERATING_HOURS_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - OPERATING_HOURS_ROUTE_IS_ACTIVE ', this.OPERATING_HOURS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - OPERATING_HOURS_ROUTE_IS_ACTIVE ', this.OPERATING_HOURS_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/project-settings/') !== -1) {
           this.PROJECT_SETTINGS_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - PROJECT_SETTINGS_ROUTE_IS_ACTIVE ', this.PROJECT_SETTINGS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - PROJECT_SETTINGS_ROUTE_IS_ACTIVE ', this.PROJECT_SETTINGS_ROUTE_IS_ACTIVE);
         } else {
           this.PROJECT_SETTINGS_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - SETTINGS_IS_ACTIVE ', this.PROJECT_SETTINGS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - SETTINGS_IS_ACTIVE ', this.PROJECT_SETTINGS_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/notification-email') !== -1) {
           this.ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE ', this.ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE ', this.ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE);
         } else {
           this.ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE ', this.ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE ', this.ENTERPRISE_NOTIFICATION_EMAIL_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/smtp-settings') !== -1) {
           this.ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE ', this.ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE ', this.ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE);
         } else {
           this.ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE ', this.ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE ', this.ENTERPRISE_SMTP_SETTINGS_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/webhook') !== -1) {
           this.PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE ', this.PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE ', this.PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE);
         } else {
           this.PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE ', this.PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE ', this.PRJCT_SETTINGS_WEBHOOK_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/payments') !== -1) {
           this.PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE ', this.PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE ', this.PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE);
         } else {
           this.PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE ', this.PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE ', this.PRJCT_SETTINGS_PAYMENTS_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/user/add') !== -1) {
           this.INVITE_TEAMMATE_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - INVITE_TEAMMATE_ROUTE_IS_ACTIVE ', this.INVITE_TEAMMATE_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - INVITE_TEAMMATE_ROUTE_IS_ACTIVE ', this.INVITE_TEAMMATE_ROUTE_IS_ACTIVE);
         } else {
           this.INVITE_TEAMMATE_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - INVITE_TEAMMATE_ROUTE_IS_ACTIVE ', this.INVITE_TEAMMATE_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - INVITE_TEAMMATE_ROUTE_IS_ACTIVE ', this.INVITE_TEAMMATE_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/user/edit/') !== -1) {
           this.EDIT_PROJECT_USER_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - EDIT_PROJECT_USER_ROUTE_IS_ACTIVE ', this.EDIT_PROJECT_USER_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - EDIT_PROJECT_USER_ROUTE_IS_ACTIVE ', this.EDIT_PROJECT_USER_ROUTE_IS_ACTIVE);
         } else {
           this.EDIT_PROJECT_USER_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - EDIT_PROJECT_USER_ROUTE_IS_ACTIVE ', this.EDIT_PROJECT_USER_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - EDIT_PROJECT_USER_ROUTE_IS_ACTIVE ', this.EDIT_PROJECT_USER_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/messages') !== -1) {
           this.CONV_DETAIL_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - CONV_DETAIL_ROUTE_IS_ACTIVE ', this.CONV_DETAIL_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CONV_DETAIL_ROUTE_IS_ACTIVE ', this.CONV_DETAIL_ROUTE_IS_ACTIVE);
         } else {
           this.CONV_DETAIL_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - CONV_DETAIL_ROUTE_IS_ACTIVE ', this.CONV_DETAIL_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CONV_DETAIL_ROUTE_IS_ACTIVE ', this.CONV_DETAIL_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/contact/edit/') !== -1) {
           this.CONTACT_EDIT_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - CONTACT_EDIT_ROUTE_IS_ACTIVE ', this.CONTACT_EDIT_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CONTACT_EDIT_ROUTE_IS_ACTIVE ', this.CONTACT_EDIT_ROUTE_IS_ACTIVE);
         } else {
           this.CONTACT_EDIT_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - CONTACT_EDIT_ROUTE_IS_ACTIVE ', this.CONTACT_EDIT_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CONTACT_EDIT_ROUTE_IS_ACTIVE ', this.CONTACT_EDIT_ROUTE_IS_ACTIVE);
         }
 
         if (event.url.indexOf('/contact/') !== -1) {
           this.CONTACT_CONVS_ROUTE_IS_ACTIVE = true;
-          // console.log('[SIDEBAR] NavigationEnd - CONTACT_CONVS_ROUTE_IS_ACTIVE ', this.CONTACT_CONVS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CONTACT_CONVS_ROUTE_IS_ACTIVE ', this.CONTACT_CONVS_ROUTE_IS_ACTIVE);
         } else {
           this.CONTACT_CONVS_ROUTE_IS_ACTIVE = false;
-          // console.log('[SIDEBAR] NavigationEnd - CONTACT_CONVS_ROUTE_IS_ACTIVE ', this.CONTACT_CONVS_ROUTE_IS_ACTIVE);
+          // this.logger.log('[SIDEBAR] NavigationEnd - CONTACT_CONVS_ROUTE_IS_ACTIVE ', this.CONTACT_CONVS_ROUTE_IS_ACTIVE);
         }
+
+        if (event.url.indexOf('/integrations') !== -1) {
+          this.INTEGRATIONS_ROUTE_IS_ACTIVE = true;
+          this.logger.log('[SIDEBAR] NavigationEnd - INTEGRATIONS_ROUTE_IS_ACTIVE ', this.INTEGRATIONS_ROUTE_IS_ACTIVE);
+        } else {
+          this.INTEGRATIONS_ROUTE_IS_ACTIVE = false;
+          this.logger.log('[SIDEBAR] NavigationEnd - INTEGRATIONS_ROUTE_IS_ACTIVE ', this.INTEGRATIONS_ROUTE_IS_ACTIVE);
+        }
+
+        if (event.url.indexOf('/installation') !== -1) {
+          this.INSTALLATION_ROUTE_IS_ACTIVE = true;
+          this.logger.log('[SIDEBAR] NavigationEnd - INSTALLATION_ROUTE_IS_ACTIVE ', this.INSTALLATION_ROUTE_IS_ACTIVE);
+        } else {
+          this.INSTALLATION_ROUTE_IS_ACTIVE = false;
+          this.logger.log('[SIDEBAR] NavigationEnd - INSTALLATION_ROUTE_IS_ACTIVE ', this.INSTALLATION_ROUTE_IS_ACTIVE);
+        }
+
+        if (event.url.indexOf('/email') !== -1) {
+          this.EMAIL_TICKETING_ROUTE_IS_ACTIVE = true;
+          this.logger.log('[SIDEBAR] NavigationEnd - EMAIL_TICKETING_ROUTE_IS_ACTIVE ', this.EMAIL_TICKETING_ROUTE_IS_ACTIVE);
+        } else {
+          this.EMAIL_TICKETING_ROUTE_IS_ACTIVE = false;
+          this.logger.log('[SIDEBAR] NavigationEnd - EMAIL_TICKETING_ROUTE_IS_ACTIVE ', this.EMAIL_TICKETING_ROUTE_IS_ACTIVE);
+        }
+
+        if (event.url.indexOf('/automations') !== -1) {
+          this.AUTOMATIONS_ROUTE_IS_ACTIVE = true;
+          this.logger.log('[SIDEBAR] NavigationEnd - AUTOMATIONS_ROUTE_IS_ACTIVE ', this.AUTOMATIONS_ROUTE_IS_ACTIVE);
+        } else {
+          this.AUTOMATIONS_ROUTE_IS_ACTIVE = false;
+          this.logger.log('[SIDEBAR] NavigationEnd - AUTOMATIONS_ROUTE_IS_ACTIVE ', this.AUTOMATIONS_ROUTE_IS_ACTIVE);
+        }
+
+        if (event.url.indexOf('/knowledge-bases-pre') !== -1) {
+          this.KB_ROUTE_IS_ACTIVE = true;
+          this.logger.log('[SIDEBAR] NavigationEnd - KB_ROUTE_IS_ACTIVE ', this.KB_ROUTE_IS_ACTIVE);
+        } else {
+          this.KB_ROUTE_IS_ACTIVE = false;
+          this.logger.log('[SIDEBAR] NavigationEnd - KB_ROUTE_IS_ACTIVE ', this.KB_ROUTE_IS_ACTIVE);
+        }
+
+
+        
       }
     });
   }
@@ -1055,7 +1146,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
       this.IS_BUSY = user_isbusy;
       // THE VALUE OS  IS_BUSY IS THEN UPDATED WITH THE VALUE RETURNED FROM THE WEBSOCKET getWsCurrentUserIsBusy$()
       // WHEN, FOR EXAMPLE IN PROJECT-SETTINGS > ADVANCED THE NUM OF MAX CHAT IS 3 AND THE 
-      this.logger.log('[SIDEBAR] - USER IS BUSY (from db)', this.IS_BUSY);
+      // console.log('[SIDEBAR] - USER IS BUSY (from db)', this.IS_BUSY);
     });
   }
 
@@ -1098,7 +1189,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   // RE-RUN getAllUsersOfCurrentProject TO UPDATE AVAILABLE / UNAVAILABLE BTN ON THE TOP OF THE SIDEBAR
   hasChangedAvailabilityStatusInUsersComp() {
     this.usersService.has_changed_availability_in_users.subscribe((has_changed_availability) => {
-      //    console.log('[SIDEBAR] SUBSCRIBES TO HAS CHANGED AVAILABILITY FROM THE USERS COMP', has_changed_availability)
+      //    this.logger.log('[SIDEBAR] SUBSCRIBES TO HAS CHANGED AVAILABILITY FROM THE USERS COMP', has_changed_availability)
 
       if (this.project) {
         this.getProjectUser()
@@ -1112,12 +1203,12 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 
   // *** NOTE: THE SAME CALLBACK IS RUNNED IN THE HOME.COMP ***
   getProjectUser() {
-    //    console.log('[SIDEBAR]  !!! SIDEBAR CALL GET-PROJECT-USER')
+    //    this.logger.log('[SIDEBAR]  !!! SIDEBAR CALL GET-PROJECT-USER')
     this.usersService.getProjectUserByUserId(this.currentUserId).subscribe((projectUser: any) => {
       this.logger.log('[SIDEBAR] PROJECT-USER GET BY USER-ID  ', projectUser);
       this.logger.log('[SIDEBAR] PROJECT-USER GET BY USER-ID - PROJECT-ID ', this.projectId);
       this.logger.log('[SIDEBAR] PROJECT-USER GET BY USER-ID - CURRENT-USER-ID ', this.user._id);
-      // console.log('[SIDEBAR] PROJECT-USER GET BY USER-ID - PROJECT USER ', projectUser);
+      // this.logger.log('[SIDEBAR] PROJECT-USER GET BY USER-ID - PROJECT USER ', projectUser);
       this.logger.log('[SIDEBAR] PROJECT-USER GET BY USER-ID - PROJECT USER LENGTH', projectUser.length);
       if ((projectUser) && (projectUser.length !== 0)) {
         // this.logger.log('[SIDEBAR] PROJECT-USER ID ', projectUser[0]._id)
@@ -1174,20 +1265,20 @@ export class SidebarComponent implements OnInit, AfterViewInit {
         takeUntil(this.unsubscribe$)
       )
       .subscribe((data) => {
-        // console.log('[SIDEBAR] - GET WS CURRENT-USER - data ', data);
+        // this.logger.log('[SIDEBAR] - GET WS CURRENT-USER - data ', data);
         if (data !== null) {
           if (data['user_available'] === false && data['profileStatus'] === "inactive") {
             this.IS_AVAILABLE = false;
             this.IS_INACTIVE = true;
-            // console.log('[SIDEBAR] - GET WS CURRENT-USER - data - IS_INACTIVE ' , this.IS_INACTIVE) 
+            // this.logger.log('[SIDEBAR] - GET WS CURRENT-USER - data - IS_INACTIVE ' , this.IS_INACTIVE) 
           } else if (data['user_available'] === false && (data['profileStatus'] === '' || !data['profileStatus'])) {
             this.IS_AVAILABLE = false;
             this.IS_INACTIVE = false;
-            // console.log('[SIDEBAR] - GET WS CURRENT-USER - data - IS_AVAILABLE ' , this.IS_AVAILABLE) 
+            // this.logger.log('[SIDEBAR] - GET WS CURRENT-USER - data - IS_AVAILABLE ' , this.IS_AVAILABLE) 
           } else if (data['user_available'] === true && (data['profileStatus'] === '' || !data['profileStatus'])) {
             this.IS_AVAILABLE = true;
             this.IS_INACTIVE = false;
-            // console.log('[SIDEBAR] - GET WS CURRENT-USER - data - IS_AVAILABLE ' , this.IS_AVAILABLE) 
+            // this.logger.log('[SIDEBAR] - GET WS CURRENT-USER - data - IS_AVAILABLE ' , this.IS_AVAILABLE) 
           }
 
           // if (this.IS_AVAILABLE === true) {
@@ -1210,10 +1301,10 @@ export class SidebarComponent implements OnInit, AfterViewInit {
         takeUntil(this.unsubscribe$)
       )
       .subscribe((currentuser_isbusy) => {
-        // this.logger.log('[SIDEBAR] - GET WS CURRENT-USER - currentuser_isbusy? ', currentuser_isbusy);
+        // console.log('[SIDEBAR] - GET WS CURRENT-USER - currentuser_isbusy? ', currentuser_isbusy);
         if (currentuser_isbusy !== null) {
           this.IS_BUSY = currentuser_isbusy;
-          // this.logger.log('[SIDEBAR] - GET WS CURRENT-USER (from ws)- this.IS_BUSY? ', this.IS_BUSY);
+          // console.log('[SIDEBAR] - GET WS CURRENT-USER (from ws)- this.IS_BUSY? ', this.IS_BUSY);
         }
       }, error => {
         this.logger.error('[SIDEBAR] - GET WS CURRENT-USER IS BUSY * error * ', error)
@@ -1249,8 +1340,10 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     this.logger.log('[SIDEBAR] - CALLING GET CURRENT PROJECT  ', this.project)
     this.auth.project_bs.subscribe((project) => {
       this.project = project
-      // console.log('[SIDEBAR] project from AUTH service subscription  ', this.project)
+      // this.logger.log('[SIDEBAR] project from AUTH service subscription  ', this.project)
       if (this.project) {
+
+
         this.projectId = this.project._id
         this.getProjectUserRole(this.projectId);
         this.findCurrentProjectAmongAll(this.projectId)
@@ -1272,8 +1365,30 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 
         this.getProjectUser();
         // this.getFaqKbByProjectId()
+        this.getKnowledgeBaseSettings()
       }
     });
+  }
+
+
+  getKnowledgeBaseSettings() {
+    this.kbService.getKbSettingsPrev().subscribe((kbSettings: KbSettings) => {
+      this.logger.log("[SIDEBAR] get kbSettings RES ", kbSettings);
+      if( kbSettings && kbSettings.kbs) {
+        if (kbSettings.kbs.length === 0) {
+          this.kbService.areNewwKb(true)
+        } else if  (kbSettings.kbs.length > 0) {
+          this.kbService.areNewwKb(false)
+        }
+
+      }
+     
+    }, (error) => {
+      this.logger.error("[SIDEBAR] get kbSettings ERROR ", error);
+    }, () => {
+      this.logger.log("SIDEBAR] get kbSettings * COMPLETE *");
+    
+    })
   }
 
   getFaqKbByProjectId() {
@@ -1291,19 +1406,19 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   }
 
   getProjectUserRole(projectId) {
-    // console.log('[SIDEBAR] - PROJECT USER ROLE projectId ', projectId);
+    // this.logger.log('[SIDEBAR] - PROJECT USER ROLE projectId ', projectId);
     const storedProjectJson = localStorage.getItem(projectId);
     if (storedProjectJson) {
       const projectObject = JSON.parse(storedProjectJson);
       this.USER_ROLE = projectObject['role'];
-      // console.log('[SIDEBAR] - PROJECT USER ROLE get from storage ', this.USER_ROLE);
+      // this.logger.log('[SIDEBAR] - PROJECT USER ROLE get from storage ', this.USER_ROLE);
     } else {
 
       this.usersService.project_user_role_bs.subscribe((user_role) => {
         this.USER_ROLE = user_role;
         this.logger.log('[SIDEBAR] - 1. SUBSCRIBE PROJECT_USER_ROLE_BS ', this.USER_ROLE);
         if (this.USER_ROLE) {
-          // console.log('[SIDEBAR] - PROJECT USER ROLE get from $ subsription', this.USER_ROLE);
+          // this.logger.log('[SIDEBAR] - PROJECT USER ROLE get from $ subsription', this.USER_ROLE);
           if (this.USER_ROLE === 'agent') {
             this.SHOW_SETTINGS_SUBMENU = false;
           }
@@ -1318,7 +1433,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   findCurrentProjectAmongAll(projectId: string) {
     this.projectService.getProjects().subscribe((projects: any) => {
       // const current_selected_prjct = projects.filter(prj => prj.id_project.id === projectId);
-      // console.log('[SIDEBAR] - GET PROJECTS - current_selected_prjct ', current_selected_prjct);
+      // this.logger.log('[SIDEBAR] - GET PROJECTS - current_selected_prjct ', current_selected_prjct);
 
       this.current_selected_prjct = projects.find(prj => prj.id_project.id === projectId);
       this.logger.log('[SIDEBAR] - GET PROJECTS - _current_selected_prjct ', this.current_selected_prjct);
@@ -1403,7 +1518,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 
 
   isMobileMenu() {
-    // console.log('SIDEBAR_IS_SMALL', this.SIDEBAR_IS_SMALL)
+    // this.logger.log('SIDEBAR_IS_SMALL', this.SIDEBAR_IS_SMALL)
     if ($(window).width() > 991) {
       this.IS_MOBILE_MENU = false
       // this.logger.log('[SIDEBAR] - IS MOBILE MENU ', this.IS_MOBILE_MENU);
@@ -1640,7 +1755,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   openChat() {
     this.elementRef.nativeElement.blur();
     this.notify.publishHasClickedChat(true);
-    // console.log('SIDEBAR openChat ' )
+    // this.logger.log('SIDEBAR openChat ' )
 
     // --- new 
     if (this.current_selected_prjct) {
@@ -1672,10 +1787,10 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 
   @HostListener('document:mousedown', ['$event'])
   onMouseDown(event) {
-    // console.log('mousedown event', event)
-    // console.log('mousedown event.target.id', event.target.id)
-    // console.log('mousedown event.target', event.target)
-    // console.log('mousedown event.which', event.which)
+    // this.logger.log('mousedown event', event)
+    // this.logger.log('mousedown event.target.id', event.target.id)
+    // this.logger.log('mousedown event.target', event.target)
+    // this.logger.log('mousedown event.which', event.which)
     // --------------------------------------------------------------------
     // event.which === 1  left button - event.which === 3 right button
     // --------------------------------------------------------------------
@@ -1741,7 +1856,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     this.countClickOnOpenUserDetailSidebar++
     this.logger.log('[SIDEBAR] countClickOnOpenUserDetailSidebar', this.countClickOnOpenUserDetailSidebar)
     // const countClickOnOpenUserDetailSidebarIsAnOddNum = this.isOdd(this.countClickOnOpenUserDetailSidebar)
-    // console.log('[SIDEBAR] countClickOnOpenUserDetailSidebarIsAnOddNum', countClickOnOpenUserDetailSidebarIsAnOddNum)
+    // this.logger.log('[SIDEBAR] countClickOnOpenUserDetailSidebarIsAnOddNum', countClickOnOpenUserDetailSidebarIsAnOddNum)
 
     const elSidebarUserDtls = <HTMLElement>document.querySelector('#user-details');
     this.logger.log('[SIDEBAR] OPEN USER DTLS SIDE PANEL elSidebarUserDtls ', elSidebarUserDtls)
@@ -1751,7 +1866,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
     }
 
     if (elSidebarUserDtls && this.countClickOnOpenUserDetailSidebar > 1) {
-      // console.log('[SIDEBAR] this.countClickOnOpenUserDetailSidebar HERE', this.countClickOnOpenUserDetailSidebar)
+      // this.logger.log('[SIDEBAR] this.countClickOnOpenUserDetailSidebar HERE', this.countClickOnOpenUserDetailSidebar)
       if (elSidebarUserDtls.classList.contains('active')) {
         this.logger.log('[SIDEBAR] elSidebarUserDtls contains class ACTIVE', elSidebarUserDtls)
         elSidebarUserDtls.classList.remove("active");

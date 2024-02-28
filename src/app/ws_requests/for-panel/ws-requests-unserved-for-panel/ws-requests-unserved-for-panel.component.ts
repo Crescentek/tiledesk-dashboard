@@ -219,7 +219,7 @@ export class WsRequestsUnservedForPanelComponent extends WsSharedComponent imple
     this.logger.log('[WS-REQUESTS-UNSERVED-X-PANEL] JOIN-REQUEST request_id', request_id, ' - CURRENT-USER-ID ', this.currentUserID);
 
     const msg = { action: 'openJoinConversationModal', parameter: request_id, calledBy: 'ws_unserved_for_panel' }
-    window.top.postMessage(msg, '*')
+    window.parent.postMessage(msg, '*')
     // this.onJoinHandled(request_id, this.currentUserID);
 
     // ------------------------
@@ -591,7 +591,7 @@ export class WsRequestsUnservedForPanelComponent extends WsSharedComponent imple
       )
       .pipe(skip(1))
       .subscribe((wsrequests) => {
-        console.log("[WS-REQUESTS-UNSERVED-X-PANEL] - subscribe getWsRequests$", wsrequests);
+        this.logger.log("[WS-REQUESTS-UNSERVED-X-PANEL] - subscribe getWsRequests$", wsrequests);
         if (wsrequests) {
           this.addDeptObject(wsrequests)
 
@@ -858,7 +858,7 @@ export class WsRequestsUnservedForPanelComponent extends WsSharedComponent imple
                 newInitials = avatarPlaceholder(request.dept.name);
                 newFillColour = getColorBck(request.dept.name)
               } else {
-                newInitials = 'n.a.';
+                newInitials = 'N/A';
                 newFillColour = '#eeeeee';
               }
               request.dept['dept_name_initial'] = newInitials;
@@ -880,7 +880,7 @@ export class WsRequestsUnservedForPanelComponent extends WsSharedComponent imple
                 newFillColour = getColorBck(request.dept.name)
               } else {
 
-                newInitials = 'n.a.';
+                newInitials = 'N/A';
                 newFillColour = '#eeeeee';
               }
 

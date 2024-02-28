@@ -9,12 +9,17 @@ import { LoggerService } from 'app/services/logger/logger.service';
 import { ProjectService } from 'app/services/project.service';
 import { LocalDbService } from 'app/services/users-local-db.service';
 import { CreateProjectComponent } from '../create-project/create-project.component';
-import { APP_SUMO_PLAN_NAME, goToCDSVersion, PLAN_NAME } from 'app/utils/util';
+import { APP_SUMO_PLAN_NAME, CHATBOT_MAX_NUM, goToCDSVersion, PLAN_NAME, URL_understanding_default_roles } from 'app/utils/util';
 import { FaqKb } from 'app/models/faq_kb-model';
 import { AppConfigService } from 'app/services/app-config.service';
 import { BotLocalDbService } from 'app/services/bot-local-db.service';
-
-
+import { ProjectPlanService } from 'app/services/project-plan.service';
+import { NotifyService } from 'app/core/notify.service';
+import { UsersService } from 'app/services/users.service';
+import { ChatbotModalComponent } from 'app/bots/bots-list/chatbot-modal/chatbot-modal.component';
+import { MatDialog } from '@angular/material/dialog';
+import { TranslateService } from '@ngx-translate/core';
+const swal = require('sweetalert');
 
 @Component({
   selector: 'appdashboard-get-start-chatbot-fork',
@@ -25,6 +30,11 @@ export class GetStartChatbotForkComponent implements OnInit {
   APP_SUMO_PLAN_NAME = APP_SUMO_PLAN_NAME
   PLAN_NAME = PLAN_NAME
   public companyLogo: string;
+  CHATBOT_MAX_NUM = CHATBOT_MAX_NUM;
+  public companyLogoBlack_Url: string;
+  public tparams: any;
+  public company_name: any;
+  public company_site_url: any;
 
   // public company_name: any;
   // public company_site_url: any;
@@ -44,6 +54,13 @@ export class GetStartChatbotForkComponent implements OnInit {
   public prjct_profile_name: string;
   public appSumoProfile: string;
   public botname: string;
+  public chatBotCount: number;
+  public chatBotLimit: any;
+  public USER_ROLE: string;
+  public getChatBotCompleted: boolean = false
+  public URL_UNDERSTANDING_DEFAULT_ROLES = URL_understanding_default_roles
+  learnMoreAboutDefaultRoles: string;
+  agentsCannotManageChatbots: string;
 
   constructor(
     public brandService: BrandService,
@@ -54,6 +71,11 @@ export class GetStartChatbotForkComponent implements OnInit {
     private router: Router,
     public appConfigService: AppConfigService,
     private botLocalDbService: BotLocalDbService,
+    public usersService: UsersService,
+    public prjctPlanService: ProjectPlanService,
+    public notify: NotifyService,
+    public dialog: MatDialog,
+    private translate: TranslateService,
   ) {
     const brand = brandService.getBrand();
     this.companyLogo = brand['BASE_LOGO'];
@@ -67,6 +89,8 @@ export class GetStartChatbotForkComponent implements OnInit {
     // this.getTemplateNameOnSite();
     this.getLoggedUser();
     // this.getCurrentProject();
+    this.getUserRole();
+    this.traslateString()
   }
 
   getLoggedUser() {
@@ -78,6 +102,15 @@ export class GetStartChatbotForkComponent implements OnInit {
           // console.log('[GET START CHATBOT FORK]  - user ', this.user)
         }
       });
+  }
+
+  getUserRole() {
+    this.usersService.project_user_role_bs
+      .subscribe((userRole) => {
+
+        this.logger.log('[GET START CHATBOT FORK] - SUBSCRIPTION TO USER ROLE »»» ', userRole)
+        this.USER_ROLE = userRole;
+      })
   }
 
   // getCurrentProject() {
@@ -156,9 +189,10 @@ export class GetStartChatbotForkComponent implements OnInit {
 
   getProjects(projectid?: string) {
     this.projectService.getProjects().subscribe((projects: any) => {
-      // console.log('[GET START CHATBOT FORK] - GET PROJECTS ', projects);
+      this.logger.log('[GET START CHATBOT FORK] - GET PROJECTS ', projects);
       if (projects) {
         this.projects = projects;
+
         if (this.projects && this.projects.length === 1) {
           // console.log('[GET START CHATBOT FORK] USE-CASE PROJECTS NO = 1')
           this.projectName = this.projects[0].id_project.name
@@ -166,7 +200,8 @@ export class GetStartChatbotForkComponent implements OnInit {
           // console.log('[GET START CHATBOT FORK] this.project ', this.selectedProjectId)
           this.project = this.projects[0].id_project;
           // console.log('[GET START CHATBOT FORK] this.project ', this.project)
-          this.buildPlanName(this.project)
+          this.getProjectBotsByPassingProjectId(this.selectedProjectId);
+          this.getProjectPlan(this.project)
           this.trackGroup(this.selectedProjectId)
         }
         if (projectid) {
@@ -181,6 +216,8 @@ export class GetStartChatbotForkComponent implements OnInit {
                 this.projectName = project.id_project.name;
                 this.selectedProjectId = projectid
 
+
+
                 const selectedProject: Project = {
                   _id: this.project['_id'],
                   name: this.project['name'],
@@ -189,9 +226,12 @@ export class GetStartChatbotForkComponent implements OnInit {
                   profile_name: this.project['profile'].name,
                   trial_expired: this.project['trialExpired']
                 }
-                this.auth.projectSelected(selectedProject)
+                this.auth.projectSelected(selectedProject, 'get-start-chatbot-fork')
 
-                this.buildPlanName(this.project)
+
+                this.getProjectBots();
+
+                this.getProjectPlan(this.project)
                 this.trackGroup(this.selectedProjectId)
               }
             })
@@ -213,18 +253,122 @@ export class GetStartChatbotForkComponent implements OnInit {
     });
   }
 
+  getProjectBots() {
+    this.logger.log('[GET START CHATBOT FORK] -  CALLING GET CHATBOTS');
+    this.faqKbService.getFaqKbByProjectId().subscribe((faqKb: any) => {
+      this.logger.log('[GET START CHATBOT FORK] - GET CHATBOTS RES', faqKb);
+
+      if (faqKb) {
+        this.chatBotCount = faqKb.length;
+        this.logger.log('[GET START CHATBOT FORK] - COUNT OF CHATBOTS', this.chatBotCount);
+      }
+    }, (error) => {
+      this.logger.error('[GET START CHATBOT FORK] - GET CHATBOTS - ERROR ', error);
+
+    }, () => {
+      this.logger.log('[GET START CHATBOT FORK] - GET CHATBOTS * COMPLETE *');
+      this.getChatBotCompleted = true
+    });
+  }
+
+  getProjectBotsByPassingProjectId(idProject: string) {
+    this.logger.log('[GET START CHATBOT FORK] -  CALLING GET CHATBOTS BY PASS PRJCT ID');
+    this.faqKbService.getFaqKbByPassingProjectId(idProject).subscribe((faqKb: any) => {
+      this.logger.log('[GET START CHATBOT FORK] - GET CHATBOTS BY PASS PRJCT ID', faqKb);
+
+      if (faqKb) {
+        this.chatBotCount = faqKb.length;
+        this.logger.log('[GET START CHATBOT FORK] - COUNT OF CHATBOTS', this.chatBotCount);
+      }
+    }, (error) => {
+      this.logger.error('[GET START CHATBOT FORK] - GET CHATBOTS - ERROR ', error);
+
+    }, () => {
+      this.logger.log('[GET START CHATBOT FORK] - GET CHATBOTS * COMPLETE *');
+      this.getChatBotCompleted = true
+    });
+  }
+
+
 
 
   onSelectProject(selectedprojectid) {
     this.logger.log('[GET START CHATBOT FORK] - ON SELECTED PROJECT - selectedprojectid ', selectedprojectid)
     this.selectedProjectId = selectedprojectid
     this.getProjects(this.selectedProjectId)
+
   }
 
-  goToInstallTemplate() {
-    this.logger.log('[GET START CHATBOT FORK] goToInstallTemplate botid', this.botid, ' - selectedProjectId ', this.selectedProjectId)
-    // this.router.navigate([`install-template/${this.botid}/${this.selectedProjectId}`]);
-    this.forkTemplate()
+  importTemplate() {
+    this.logger.log('[GET START CHATBOT FORK] importTemplate botid', this.botid, ' - selectedProjectId ', this.selectedProjectId,)
+    this.logger.log('[GET START CHATBOT FORK] importTemplate chatBotCount ', this.chatBotCount, ' chatBotLimit ', this.chatBotLimit, ' USER_ROLE ', this.USER_ROLE, ' profile_name ', this.project.profile.name)
+
+    // this.router.navigate([`install-template/${this.botid}/${this.selectedProjectId}`]); // old
+    // this.forkTemplate()
+    if (this.USER_ROLE !== 'agent') {
+      if (this.chatBotLimit) {
+        if (this.chatBotCount < this.chatBotLimit) {
+          this.logger.log('[GET START CHATBOT FORK] USECASE  chatBotCount < chatBotLimit: RUN FORK')
+          this.forkTemplate()
+        } else if (this.chatBotCount >= this.chatBotLimit) {
+          this.logger.log('[GET START CHATBOT FORK] USECASE  chatBotCount >= chatBotLimit DISPLAY MODAL')
+          this.presentDialogReachedChatbotLimit()
+        }
+      } else if (!this.chatBotLimit) {
+        this.logger.log('[GET START CHATBOT FORK] USECASE  NO chatBotLimit: RUN FORK')
+        this.forkTemplate()
+      }
+    } if (this.USER_ROLE === 'agent') {
+      this.presentModalAgentCannotManageChatbotAndGoToHome()
+    }
+  }
+
+  presentDialogReachedChatbotLimit() {
+    this.logger.log('[BOTS-LIST] openDialog presentDialogReachedChatbotLimit prjct_profile_name ', this.prjct_profile_name)
+    const dialogRef = this.dialog.open(ChatbotModalComponent, {
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+      hasBackdrop: true,
+      data: {
+        projectProfile: this.prjct_profile_name,
+        callingPage: "getStartChatbotFork",
+        projectId: this.project._id,
+        // subscriptionIsActive: this.subscription_is_active,
+        // prjctProfileType: this.prjct_profile_type,
+        // trialExpired: this.trial_expired
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      this.logger.log(`[GET START CHATBOT FORK] Dialog result: ${result}`);
+    });
+  }
+
+  presentModalAgentCannotManageChatbotAndGoToHome() {
+    const el = document.createElement('div')
+    // el.innerHTML = onlyOwnerCanManageTheAccountPlanMsg + '. ' + "<a href='https://docs.tiledesk.com/knowledge-base/understanding-default-roles/' target='_blank'>" + learnMoreAboutDefaultRoles + "</a>"
+    el.innerHTML = this.agentsCannotManageChatbots + '. ' + `<a href=${this.URL_UNDERSTANDING_DEFAULT_ROLES} target='_blank'>` + this.learnMoreAboutDefaultRoles + "</a>"
+    swal({
+      // title: this.onlyOwnerCanManageTheAccountPlanMsg,
+      content: el,
+      icon: "info",
+      buttons: {
+        catch: {
+          text: "OK",
+          value: "catch",
+        },
+      },
+      dangerMode: false,
+    }).then((value: any) => {
+      if (value === 'catch') {
+        this.goToHome()
+      }
+    });
+
+  }
+
+
+  goToHome() {
+    this.router.navigate([`/project/${this.project._id}/home`]);
   }
 
   goToYourProject() {
@@ -252,15 +396,14 @@ export class GetStartChatbotForkComponent implements OnInit {
 
 
       this.getFaqKbById(this.botid);
-      this.trackEvent()
 
-     
+      this.trackEvent()
 
     });
   }
 
   getFaqKbById(botid) {
-    this.faqKbService.getFaqKbByIdAndProjectId(this.selectedProjectId , botid).subscribe((faqkb: any) => {
+    this.faqKbService.getFaqKbByIdAndProjectId(this.selectedProjectId, botid).subscribe((faqkb: any) => {
       // console.log('[GET START CHATBOT FORK] GET FAQ-KB (DETAILS) BY ID  ', faqkb);
 
       this.botLocalDbService.saveBotsInStorage(botid, faqkb);
@@ -291,9 +434,9 @@ export class GetStartChatbotForkComponent implements OnInit {
           this.logger.error('Wizard Get start chatbot fork page error', err);
         }
         if (!this.user) {
-            // console.log('[GET START CHATBOT FORK] this.user',  this.user)
-            this.user = localStorage.getItem('user');
-            // console.log('[GET START CHATBOT FORK] stored user',  this.user)
+          // console.log('[GET START CHATBOT FORK] this.user',  this.user)
+          this.user = localStorage.getItem('user');
+          // console.log('[GET START CHATBOT FORK] stored user',  this.user)
         }
 
         let userFullname = ''
@@ -390,42 +533,159 @@ export class GetStartChatbotForkComponent implements OnInit {
     }
   }
 
-  buildPlanName(project) {
+  getProjectPlan(project) {
+    this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project ', project)
     if (project.profile.extra3) {
       this.appSumoProfile = APP_SUMO_PLAN_NAME[project.profile.extra3]
       // console.log('[GET START CHATBOT FORK] Find Current Project appSumoProfile ', this.appSumoProfile)
     }
 
     if (project.profile.type === 'free') {
-      if (project.trial_expired === false) {
-        this.prjct_profile_name = PLAN_NAME.B + " plan (trial)"
+      this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type)
+      this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - TRIAL EXPIRED ', project.trialExpired)
+      // ------------------------------------------------------------------------ 
+      // USECASE: TRIAL ACTIVE 
+      // ------------------------------------------------------------------------
+      if (project.trialExpired === false) {
+        if (project.profile.name === 'free') {
+          this.prjct_profile_name = PLAN_NAME.B + " plan (trial)"
+          // Chatbot limit
+          this.chatBotLimit = null
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
 
 
+        } else if (project.profile.name === 'Sandbox') {
+          this.prjct_profile_name = PLAN_NAME.E + " plan (trial)"
+          this.chatBotLimit = CHATBOT_MAX_NUM[PLAN_NAME.E];
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        }
       } else {
-        this.prjct_profile_name = "Free plan";
+        this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - TRIAL EXPIRED ', project.trialExpired)
+        // ------------------------------------------------------------------------ 
+        // USECASE: TRIAL EXPIRED 
+        // ------------------------------------------------------------------------
+        if (project.profile.name === 'free') {
+          this.prjct_profile_name = "Free plan";
+          this.chatBotLimit = CHATBOT_MAX_NUM.free;
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
 
+        } else if (project.profile.name === 'Sandbox') {
+          this.prjct_profile_name = "Sandbox plan";
+          this.chatBotLimit = CHATBOT_MAX_NUM.free;
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        }
       }
     } else if (project.profile.type === 'payment') {
+      this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type)
+      // ------------------------------------------------------------------------
+      // USECASE: SUB ACTIVE
+      // ------------------------------------------------------------------------
+      if (project.isActiveSubscription === true) {
+        this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - SUB ACTIVE', project.isActiveSubscription)
+        if (project.profile.name === PLAN_NAME.A) {
+          if (!this.appSumoProfile) {
+            this.prjct_profile_name = PLAN_NAME.A + " plan";
+            this.chatBotLimit = null;
+            this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+          } else {
+            this.prjct_profile_name = PLAN_NAME.A + " plan " + '(' + this.appSumoProfile + ')';
+            this.chatBotLimit = null;
+            this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
 
-      if (project.profile.name === PLAN_NAME.A) {
-        if (!this.appSumoProfile) {
+          }
+        } else if (project.profile.name === PLAN_NAME.B) {
+          if (!this.appSumoProfile) {
+            this.prjct_profile_name = PLAN_NAME.B + " plan";
+            this.chatBotLimit = null;
+            this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+          } else {
+            this.prjct_profile_name = PLAN_NAME.B + " plan " + '(' + this.appSumoProfile + ')';;
+            this.chatBotLimit = null;
+            this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+          }
+        } else if (project.profile.name === PLAN_NAME.C) {
+          this.prjct_profile_name = PLAN_NAME.C + " plan";
+          this.chatBotLimit = null;
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        } else if (project.profile.name === PLAN_NAME.D) {
+          this.prjct_profile_name = PLAN_NAME.C + " plan";
+          this.chatBotLimit = CHATBOT_MAX_NUM[PLAN_NAME.D]
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        }
+        else if (project.profile.name === PLAN_NAME.E) {
+          this.prjct_profile_name = PLAN_NAME.C + " plan";
+          this.chatBotLimit = CHATBOT_MAX_NUM[PLAN_NAME.E]
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        }
+
+        else if (project.profile.name === PLAN_NAME.F) {
+          this.prjct_profile_name = PLAN_NAME.C + " plan";
+          this.chatBotLimit = null
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        }
+
+      } else if (project.isActiveSubscription === false) {
+        this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - SUB ACTIVE', project.isActiveSubscription)
+        if (project.profile.name === PLAN_NAME.A) {
           this.prjct_profile_name = PLAN_NAME.A + " plan";
-
-        } else {
-          this.prjct_profile_name = PLAN_NAME.A + " plan " + '(' + this.appSumoProfile + ')';
+          this.chatBotLimit = CHATBOT_MAX_NUM.free
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
 
         }
-      } else if (project.profile.name === PLAN_NAME.B) {
-        if (!this.appSumoProfile) {
+        else if (project.profile.name === PLAN_NAME.B) {
           this.prjct_profile_name = PLAN_NAME.B + " plan";
-
-        } else {
-          this.prjct_profile_name = PLAN_NAME.B + " plan " + '(' + this.appSumoProfile + ')';;
+          this.chatBotLimit = CHATBOT_MAX_NUM.free
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
 
         }
-      } else if (project.profile.name === PLAN_NAME.C) {
-        this.prjct_profile_name = PLAN_NAME.C + " plan";
+        else if (project.profile.name === PLAN_NAME.C) {
+          this.prjct_profile_name = PLAN_NAME.C + " plan";
+          this.chatBotLimit = CHATBOT_MAX_NUM.free
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        }
+        else if (project.profile.name === PLAN_NAME.D) {
+          this.prjct_profile_name = PLAN_NAME.D + " plan";
+          this.chatBotLimit = CHATBOT_MAX_NUM.free
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        }
+        else if (project.profile.name === PLAN_NAME.E) {
+          this.prjct_profile_name = PLAN_NAME.E + " plan";
+          this.chatBotLimit = CHATBOT_MAX_NUM.free
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        }
+        else if (project.profile.name === PLAN_NAME.F) {
+          this.prjct_profile_name = PLAN_NAME.F + " plan";
+          this.chatBotLimit = CHATBOT_MAX_NUM.free
+          this.logger.log('[GET START CHATBOT FORK] - GET PROJECT PLAN - project profile type ', project.profile.type, 'prjct_profile_name', this.prjct_profile_name, ' chatBotLimit', this.chatBotLimit)
+
+        }
       }
     }
   }
+
+  traslateString() {
+    this.translate
+      .get('LearnMoreAboutDefaultRoles')
+      .subscribe((translation: any) => {
+        this.learnMoreAboutDefaultRoles = translation
+      })
+
+    this.translate
+      .get('AgentsCannotManageChatbots')
+      .subscribe((translation: any) => {
+        this.agentsCannotManageChatbots = translation
+      })
+  }
+
 }

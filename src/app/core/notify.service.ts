@@ -3,6 +3,7 @@ import { Subject, BehaviorSubject } from 'rxjs';
 import { Location } from '@angular/common';
 import { LoggerService } from '../services/logger/logger.service';
 import { PLAN_NAME, URL_understanding_default_roles } from './../utils/util';
+import { BrandService } from 'app/services/brand.service';
 const swal = require('sweetalert');
 declare var $: any;
 /// Notify users about errors and other helpful stuff
@@ -33,8 +34,12 @@ export class NotifyService {
 
   displayModalSubsExpired: string;
   displayModalEnterpiseSubsExpired: string;
-
+  displayModalTrialExpired= 'none';
+  
   displayContactUsModal = 'none';
+  displayContactOwnerModal = 'none';
+
+  goToPricingModal = 'none';
   
   viewCancelSubscriptionModal = 'none';
   displayDataExportNotAvailable = 'none';
@@ -54,17 +59,23 @@ export class NotifyService {
   public cancelSubscriptionCompleted$ = new Subject();
 
   showSubtitleAllOperatorsSeatsUsed: boolean;
+  showSubtitleSeatsNumberExceed : boolean;
+  showSubtitleAllChatbotUsed: boolean;
   displayLogoutModal = 'none';
   prjct_profile_name: string;
+  salesEmail: string;
 
   public URL_UNDERSTANDING_DEFAULT_ROLES = URL_understanding_default_roles
   public displayContactUsModalToUpgradePlan = 'none';
   constructor(
     public location: Location,
+    public brandService: BrandService,
     private logger: LoggerService
 
   ) {
-
+    const brand = brandService.getBrand();
+    this.salesEmail = brand['CONTACT_SALES_EMAIL'];
+    this.logger.log('[NOTIFY-SERVICE] salesEmail ' ,  this.salesEmail) 
   }
 
   presentContactUsModalToUpgradePlan(displayModal: boolean) {
@@ -75,17 +86,20 @@ export class NotifyService {
   }
 
   contacUsViaEmail() {
-    window.open('mailto:sales@tiledesk.com?subject=Upgrade Tiledesk plan');
-    this.closeContactUsModalToUpgradePlan()
+    this.closeContactUsModalToUpgradePlan();
+    this.closeModalSubsExpired()
+    this.closeContactUsModal();
+    window.open(`mailto:${this.salesEmail}?subject=Upgrade plan`);
   }
   
   contacUsViaEmailPlanC() {
-    window.open(`mailto:sales@tiledesk.com?subject=Upgrade Tiledesk plan (${PLAN_NAME.C} expired)`);
+    window.open(`mailto:${this.salesEmail}?subject=Upgrade plan (${this.prjct_profile_name} expired)`);
     this.closeModalEnterpiseSubsExpired()
   }
 
   closeContactUsModalToUpgradePlan() {
-    this.displayContactUsModalToUpgradePlan = 'none'
+    this.displayContactUsModalToUpgradePlan = 'none';
+    this.displayContactUsModal = 'none'
   }
 
 
@@ -101,11 +115,19 @@ export class NotifyService {
     this._prjctPlanName = prjctPlanName;
   }
 
+  displayTrialHasExpiredModal() {
+    this.displayModalTrialExpired = 'block';
+  }
+
+  closeModalTrialExpired() {
+    this.displayModalTrialExpired = 'none';
+  }
 
   displayEnterprisePlanHasExpiredModal(subHasExpired: boolean, prjctPlanName: string, prjctPlanSubsEndDate: Date) {
+    
     if (subHasExpired === true) {
       this.displayModalEnterpiseSubsExpired = 'block';
-      this.prjct_profile_name = prjctPlanName + ' plan'
+      this.prjct_profile_name = prjctPlanName // + ' plan'
     }
     this.logger.log('[NOTIFY-SERVICE] - HasExpiredEnterpriseModal prjctPlanName ', prjctPlanName);
   }
@@ -126,12 +148,17 @@ export class NotifyService {
   }
 
   // "CONTACT US - LET'S CHAT" MODAL
-  _displayContactUsModal(displayModal: boolean, areAvailableOperatorsSeats: string) {
-    this.logger.log('[NOTIFY-SERVICE] - _displayContactUsModal areAvailableOperatorsSeats ', areAvailableOperatorsSeats);
-    if (areAvailableOperatorsSeats === 'operators_seats_unavailable') {
+  _displayContactUsModal(displayModal: boolean, reason: string) {
+    // console.log('[NOTIFY-SERVICE] - _displayContactUsModal reason ', reason);
+    if (reason === 'seats_limit_reached') {
       this.showSubtitleAllOperatorsSeatsUsed = true;
+      this.showSubtitleSeatsNumberExceed= false;
+    } else if  (reason === 'seats_limit_exceed') {
+      this.showSubtitleSeatsNumberExceed= true;
+      this.showSubtitleAllOperatorsSeatsUsed = false;
     } else {
       this.showSubtitleAllOperatorsSeatsUsed = false;
+      this.showSubtitleSeatsNumberExceed = false;
     }
 
     if (displayModal === true) {
@@ -143,8 +170,49 @@ export class NotifyService {
     this.displayContactUsModal = 'none';
   }
 
+  _displayContactOwnerModal(displayModal: boolean, reason: string) {
+    // console.log('[NOTIFY-SERVICE] - _displayContactOwnerModal reason ', reason);
+    if (reason === 'seats_limit_reached') {
+      this.showSubtitleAllOperatorsSeatsUsed = true;
+      this.showSubtitleSeatsNumberExceed= false;
+    } else if  (reason === 'seats_limit_exceed') {
+      this.showSubtitleSeatsNumberExceed= true;
+      this.showSubtitleAllOperatorsSeatsUsed = false;
+    } else {
+      this.showSubtitleAllOperatorsSeatsUsed = false;
+      this.showSubtitleSeatsNumberExceed = false;
+    }
+
+    if (displayModal === true) {
+      this.displayContactOwnerModal = 'block';
+    }
+  }
+
+  closeContactOwnerModal() {
+    this.displayContactOwnerModal = 'none';
+  }
+
  
 
+  displayGoToPricingModal(reason) {
+    this.goToPricingModal = 'block';
+    if (reason === 'user_exceeds') {
+      this.showSubtitleAllOperatorsSeatsUsed = true;
+      this.showSubtitleAllChatbotUsed = false;
+    } else if (reason === 'chatbot_exceeds')  {
+      this.showSubtitleAllOperatorsSeatsUsed = false;
+      this.showSubtitleAllChatbotUsed = true;
+    } 
+   
+    
+
+  }
+
+  closeGoToPricingModal() {
+    this.goToPricingModal = 'none';
+  }
+
+ 
   
 
   // -----------------------------------------------
@@ -394,6 +462,45 @@ export class NotifyService {
 
   openMsgInChat() { }
 
+  show(message, notificationColor, icon) {
+    const type = ['', 'info', 'success', 'warning', 'danger'];
+    // const color = Math.floor((Math.random() * 4) + 1);
+    const color = notificationColor
+
+    let icon_bckgrnd_color = ''
+    if (notificationColor === 4) {
+      icon_bckgrnd_color = '#d2291c'
+    } else if (notificationColor === 2) {
+      icon_bckgrnd_color = '#449d48'
+    }
+    this.notify = $.notify({
+      // icon: 'glyphicon glyphicon-warning-sign',
+      // message: message
+
+    }, {
+      type: type[color],
+      // timer: 1500,
+      delay: 1500,
+
+      placement: {
+        from: 'top',
+        align: 'right'
+      },
+      // animate: {
+      //   enter: 'animated zoomIn',
+      //   exit: 'animated zoomOut'
+      // },
+      // tslint:disable-next-line:max-line-length
+      template: '<div data-notify="container" class="col-xs-11 col-sm-3  alert alert-{0}" style="text-align: left; padding-top: 8px;padding-bottom: 8px;" role="alert">' +
+        '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
+        // '<span data-notify="title" style="max-width: 100%; font-size:1.1em; ">TileDesk</span> ' +
+        // tslint:disable-next-line:max-line-length
+        `<span data-notify="icon" style="display: inline;"><i style="vertical-align: middle; padding: 3px;background-color: ${icon_bckgrnd_color}; border-radius: 50%; font-size:16px " class="material-icons">` + icon + '</i> </span> ' +
+        '<span data-notify="message" style="display: inline; vertical-align: middle; padding-left:8px">' + message + '</span>' +
+        '</div>'
+    });
+  }
+
   showWidgetStyleUpdateNotification(message, notificationColor, icon) {
     const type = ['', 'info', 'success', 'warning', 'danger'];
     // const color = Math.floor((Math.random() * 4) + 1);
@@ -593,6 +700,24 @@ export class NotifyService {
 
 
   presentModalOnlyOwnerCanManageTheAccountPlan(onlyOwnerCanManageTheAccountPlanMsg: string, learnMoreAboutDefaultRoles: string) {
+
+    const el = document.createElement('div')
+    // el.innerHTML = onlyOwnerCanManageTheAccountPlanMsg + '. ' + "<a href='https://docs.tiledesk.com/knowledge-base/understanding-default-roles/' target='_blank'>" + learnMoreAboutDefaultRoles + "</a>"
+    el.innerHTML = onlyOwnerCanManageTheAccountPlanMsg + '. ' + `<a href=${this.URL_UNDERSTANDING_DEFAULT_ROLES} target='_blank'>` + learnMoreAboutDefaultRoles + "</a>"
+    swal({
+      // title: this.onlyOwnerCanManageTheAccountPlanMsg,
+      content: el,
+      icon: "info",
+      // buttons: true,
+      button: {
+        text: "OK",
+      },
+      dangerMode: false,
+    })
+
+  }
+
+  presentModalAgentCannotManageChatbot(onlyOwnerCanManageTheAccountPlanMsg: string, learnMoreAboutDefaultRoles: string) {
 
     const el = document.createElement('div')
     // el.innerHTML = onlyOwnerCanManageTheAccountPlanMsg + '. ' + "<a href='https://docs.tiledesk.com/knowledge-base/understanding-default-roles/' target='_blank'>" + learnMoreAboutDefaultRoles + "</a>"

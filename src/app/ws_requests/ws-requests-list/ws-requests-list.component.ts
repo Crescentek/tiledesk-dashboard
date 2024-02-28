@@ -436,7 +436,7 @@ export class WsRequestsListComponent extends WsSharedComponent implements OnInit
         this.upgradePlan = translation;
       });
 
-    this.translate.get('AvailableWithThePlan', { plan_name: PLAN_NAME.C })
+    this.translate.get('AvailableWithThePlan', { plan_name: PLAN_NAME.F })
       .subscribe((translation: any) => {
         this.cPlanOnly = translation;
       });
@@ -937,16 +937,17 @@ export class WsRequestsListComponent extends WsSharedComponent implements OnInit
     //   this.presentModalAgentCannotManageAvancedSettings();
     // }
     if (this.CURRENT_USER_ROLE === 'owner') {
-      if (this.profile_name === PLAN_NAME.C && this.subscription_is_active === true) {
+      if ((this.profile_name === PLAN_NAME.C || this.profile_name === PLAN_NAME.F) && this.subscription_is_active === true) {
 
         // console.log('[PRJCT-EDIT-ADD] - HAS CLICKED goToProjectSettings_Advanced');
         this.router.navigate(['project/' + this.projectId + '/project-settings/advanced']);
 
-      } else if (this.profile_name === PLAN_NAME.C && this.subscription_is_active === false) {
+      } else if ((this.profile_name === PLAN_NAME.C || this.profile_name === PLAN_NAME.F) && this.subscription_is_active === false) {
         this.notify.displayEnterprisePlanHasExpiredModal(true, PLAN_NAME.C, this.subscription_end_date);
-      } else if (this.profile_name !== PLAN_NAME.C) {
+      } else if (this.profile_name !== PLAN_NAME.C  && this.profile_name !== PLAN_NAME.F) {
         this.presentModalFeautureAvailableOnlyWithPlanC()
       }
+      
     } else {
       this.presentModalAgentCannotManageAvancedSettings()
     }
@@ -1040,7 +1041,7 @@ export class WsRequestsListComponent extends WsSharedComponent implements OnInit
         if (upgradePlan) {
           this.logger.log('[WS-REQUESTS-LIST] swal upgradePlan', upgradePlan)
           this.router.navigate(['project/' + this.projectId + '/pricing']);
-          // this.notify.presentContactUsModalToUpgradePlan(true);
+          
         } else {
           this.logger.log('[WS-REQUESTS-LIST] swal upgradePlan (else)', upgradePlan)
         }
@@ -1218,7 +1219,7 @@ export class WsRequestsListComponent extends WsSharedComponent implements OnInit
       )
 
       .subscribe((wsrequests) => {
-        // console.log("[WS-REQUESTS-LIST] - enter subscribe to  getWsRequests$", wsrequests);
+        this.logger.log("[WS-REQUESTS-LIST] - enter subscribe to  getWsRequests$", wsrequests);
         if (wsrequests) {
           this.logger.log("[WS-REQUESTS-LIST] - getWsRequests > if (wsrequests) ", wsrequests);
           this.browserRefresh = browserRefresh;
@@ -2215,7 +2216,7 @@ export class WsRequestsListComponent extends WsSharedComponent implements OnInit
         if (pair && pair._leads['leads']) {
           pair._leads.leads.forEach(lead => {
 
-            let e_mail = 'n/a'
+            let e_mail = 'N/A'
             if (lead.email) {
               e_mail = lead.email
             }

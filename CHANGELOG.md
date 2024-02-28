@@ -1,5 +1,94 @@
 # tiledesk-dashboard
 
+### 2.5.12
+- Deploys in production
+- Fixes the bug: "Settings" sidebar menu item is not active when some settings sidebar menu items are active
+
+### 2.5.11
+- Deploys in production
+- Adds settings sidebar on "paywall" pages
+
+### 2.5.10
+- Deploys in production
+- Improvements and bug fixing of the Knowledge bases
+
+### 2.5.9
+- Deploys in production
+- Moves the "Integrations" menu item from the sidebar to the settings sidebar
+- Moves for the new Knowledge bases the menu item from the settings sidebar to the chatbot sidebar
+- Fixes the bug: dropdown menu overlaps bottom navigation bar on Change Password page
+- Fixes the bug: background image is not visible on pricing page
+- Fixes the bug: Loading spinner remains active on Knowledge Base page
+
+### 2.5.8
+- Deploys in production
+- Fixes the bug: Sidebar "Settings" menu item becomes grayed out when user selects "Installations"
+- Improves the Change Password tab available on the user's profile page
+
+### 2.5.7
+- Deploys in production
+- Removes, on the conversation details page, the ability to the agents to send message 
+
+### 2.5.6
+- Deploys in production
+- Improves the modal windows displayed on teammate list page and the om invite teammates page
+
+### 2.5.5
+- Deploys in production
+- Fixes bug: Admins can't invite teammates
+
+### 2.5.4
+- Deploys in production
+- Restyles the "Your Projects" page
+
+### 2.5.3
+- Minor improvements
+
+### 2.5.2
+- Minor improvements
+
+### 2.5.1
+- Fixes bug: old knowledge bases are not visible
+
+### 2.5.0
+- Deploys in production
+- Adds the integrations page 
+- Improves the Knowledge Bases
+- New Pricing
+
+### 2.5.0-rc9
+- Fixing of the pricing page
+- reCaptcha fixing
+
+### 2.5.0-rc8
+- Adds a loading spinner on the integrations page
+
+### 2.5.0-rc7
+- Bug fixing
+
+### 2.5.0-rc6
+- Bug fixing
+
+### 2.5.0-rc5
+- Improvements
+
+### 2.5.0-rc4
+- New KB
+
+### 2.5.0-rc4
+- New KB
+
+### 2.5.0-rc3
+- New pricing
+
+### 2.5.0-rc2
+- Deploys in pre
+- New pricing (bug fixing)
+
+### 2.5.0-rc1
+- Deploys in pre
+- New pricing (in progress)
+
 ### 2.4.99
 - Deploys in production
 - Externalize the accordion colors of the "Chatbot attributes" and of the accordion "Trusted info"
@@ -29,6 +118,15 @@
 - Improvements and bug fixing
 
 ### 2.4.95-rc1
+### 2.4.94-rc3
+- Deploys in pre
+- Improvements and bug fixing
+
+### 2.4.94-rc2
+- Deploys in pre
+- Improvements and bug fixing
+
+### 2.4.94-rc1
 - Deploys in pre
 - Adds the ability to access the design studio for the "tiledesk-ai" chatbot type
 
@@ -43,6 +141,13 @@
 ### 2.4.92
 - Deploys in production
 - Improvements and bug fixing
+
+### 2.4.92-rc1
+- Deploys in pre
+- Adds integrations
+- Adds usage stats (quotas measurement)
+- Adds reCaptcha 
+- Implements new pricing 
 
 ### 2.4.91
 - Deploys in production
@@ -91,6 +196,14 @@
 
 ### 2.4.80
 - Improvements and bug fixing
+
+### 2.4.79-rc2
+- Implements google reCAPTCHA on the sign up page 
+- Removes the last "Get Template" onboarding step
+
+### 2.4.79-rc1
+- Adds the ability to select the "Business Owner" role in the first step of onboarding
+- Bug fixes in Knowledge Base
 
 ### 2.4.79
 - Adds the "News and documentation" section to the home page

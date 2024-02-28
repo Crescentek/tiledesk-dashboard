@@ -35,6 +35,7 @@ import { NotifyService } from './core/notify.service';
 import { avatarPlaceholder, getColorBck } from './utils/util';
 import { LocalDbService } from './services/users-local-db.service';
 import { ProjectService } from './services/project.service';
+import { style } from '@angular/animations';
 
 
 declare const gtag: Function;
@@ -100,9 +101,24 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.router.events.subscribe((event) => {
             if (event instanceof NavigationEnd) {
+                // console.log('NavigationEnd event ', event)
                 gtag('config', 'G-3DMYV3HG61', { 'page_path': event.urlAfterRedirects });
+
+                const grecaptchaBadgeEl = <HTMLElement>document.querySelector('.grecaptcha-badge');
+                if (event.url !== '/signup') {
+                    // console.log('[APP-COMPONENT] grecaptchaBadgeEl ', grecaptchaBadgeEl)
+                    if (grecaptchaBadgeEl) {
+                        grecaptchaBadgeEl.style.visibility = 'hidden'
+                    }
+                } else {
+                    if (grecaptchaBadgeEl) {
+                        grecaptchaBadgeEl.style.visibility = 'visible'
+                    }
+                }
             }
         })
+
+        
 
         this.auth.project_bs.subscribe((project) => {
             if (project) {
@@ -234,7 +250,41 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         //     }}();` 
         //     head.appendChild(script)
         // }
+        this.loadStyle(JSON.parse(localStorage.getItem('custom_style')))
     }
+
+    async loadStyle(data){
+       
+        if(!data || !data.parameter){
+          let className =  document.body.className.replace(new RegExp(/style-\S*/gm), '')
+          document.body.className = className
+          document.body.classList.remove('light')
+          document.body.classList.remove('dark')
+          document.body.classList.remove('custom')
+          let link = document.getElementById('themeCustom');
+          if(link){
+            link.remove();
+          }
+          /** remove style INFO from storage */
+         localStorage.removeItem('custom_style')
+
+          return;
+        } 
+    
+        // Create link
+        let link = document.createElement('link');
+        link.id= 'themeCustom'
+        link.href = data.parameter;
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.media='all';
+        
+        this.logger.log('[APP-COMPONENT] link', link, 'document ', document)
+        let head = document.getElementsByTagName('head')[0];
+        head.appendChild(link);
+        document.body.classList.add(data.type) //ADD class to body element as theme type ('light', 'dark', 'custom')
+        return;
+      }
 
 
     ngOnInit() {
@@ -276,15 +326,17 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const elemMainPanel = <HTMLElement>document.querySelector('.main-panel');
         const elemSidebar = <HTMLElement>document.querySelector('.sidebar .sidebar-wrapper');
+
+
         this._router = this.router.events
             .pipe(
                 filter(event => event instanceof NavigationEnd)
             )
             .subscribe((event: NavigationEvent) => {
-                    // console.log('[APP-COMPONENT] NavigationEvent ', event);
-                    elemMainPanel.scrollTop = 0;
-                    elemSidebar.scrollTop = 0;
-                }
+                // console.log('[APP-COMPONENT] NavigationEvent ', event);
+                elemMainPanel.scrollTop = 0;
+                elemSidebar.scrollTop = 0;
+            }
             )
 
         if (window.matchMedia(`(min-width: 960px)`).matches && !this.isMac()) {
@@ -790,7 +842,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
                     (this.route.indexOf('/createfaq') !== -1) ||
                     (this.route.indexOf('/cds') !== -1) ||
                     (this.route.indexOf('/desktop-access') !== -1)
-                  
+
 
                 ) {
 

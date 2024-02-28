@@ -123,52 +123,6 @@ export class AuthService {
     // this.getProjectPlan()
   }
 
-  // getProjectPlan() {
-  //   this.prjctPlanService.projectPlan$.subscribe((projectProfileData: any) => {
-  //     console.log('[NAVBAR] - getProjectPlan project Profile Data', projectProfileData)
-  //     if (projectProfileData) {
-        
-  //       if (projectProfileData && projectProfileData.extra3) {
-  //         this.logger.log('[NAVBAR] projectProfileData extra3', projectProfileData.extra3)
-  //         this.appSumoProfile = APP_SUMO_PLAN_NAME[projectProfileData.extra3]
-  //         this.logger.log('[NAVBAR] projectProfileData appSumoProfile ', this.appSumoProfile)
-  //       }
-
-  //       if (projectProfileData.profile_type === 'free') {
-  //         if (projectProfileData.trial_expired === false) {
-  //           this.prjct_profile_name_for_segment = PLAN_NAME.B + " plan (trial)"
-
-  //         } else {
-  //           this.prjct_profile_name_for_segment = "Free plan";
-  //         }
-  //       } else if (projectProfileData.profile_type === 'payment') {
-
-  //         if (projectProfileData.profile_name === PLAN_NAME.A) {
-  //           if (!this.appSumoProfile) {
-  //             this.prjct_profile_name_for_segment = PLAN_NAME.A + " plan";
-
-  //           } else {
-  //             this.prjct_profile_name_for_segment = PLAN_NAME.A + " plan " + '(' + this.appSumoProfile + ')';
-
-  //           }
-  //         } else if (projectProfileData.profile_name === PLAN_NAME.B) {
-  //           if (!this.appSumoProfile) {
-  //             this.prjct_profile_name_for_segment = PLAN_NAME.B + " plan";
-
-  //           } else {
-  //             this.prjct_profile_name_for_segment = PLAN_NAME.B + " plan " + '(' + this.appSumoProfile + ')';
-  //           }
-  //         } else if (projectProfileData.profile_name === PLAN_NAME.C) {
-  //           this.prjct_profile_name_for_segment = PLAN_NAME.C + " plan";
-  //         }
-  //       }
-  //     }
-  //   }, error => {
-  //     this.logger.error('[NAVBAR] - getProjectPlan - ERROR', error);
-  //   }, () => {
-  //     this.logger.log('[NAVBAR] - getProjectPlan - COMPLETE')
-  //   });
-  // }
 
 
   browserNameAndVersion(browserName, browserVersion) {
@@ -294,9 +248,10 @@ export class AuthService {
   }
 
   // RECEIVE FROM VARIOUS COMP THE OBJECT PROJECT AND PUBLISH
-  projectSelected(project: Project) {
+  projectSelected(project: Project, calledBy) {
     // PUBLISH THE project
-    // console.log('[AUTH-SERV] - PUBLISH THE PROJECT OBJECT RECEIVED ', project)
+    this.logger.log('[AUTH-SERV] - PUBLISH THE PROJECT OBJECT RECEIVED project', project)
+    this.logger.log('[AUTH-SERV] - PUBLISH THE PROJECT OBJECT RECEIVED calledBy', calledBy)
 
     this.logger.log('[AUTH-SERV] PUBLISH THE PROJECT OBJECT RECEIVED  > selected_project_id ', project._id,)
     this.selected_project_id = project._id // used in checkRoleForCurrentProject if nav_project_id is undefined
@@ -304,7 +259,7 @@ export class AuthService {
   }
 
   projectProfile(projectprofile) {
-    // console.log('[AUTH-SERV] - PROJECT PROFILE ', projectprofile)
+    this.logger.log('[AUTH-SERV] - PROJECT PROFILE ', projectprofile)
     this.prjct_profile_name_for_segment = projectprofile
   }
 
@@ -399,9 +354,7 @@ export class AuthService {
 
               this.subscription.unsubscribe()
 
-              const storedProjectJson = localStorage.getItem(
-                this.nav_project_id,
-              )
+              const storedProjectJson = localStorage.getItem(this.nav_project_id )
               this.logger.log('[AUTH-SERV] - JSON OF STORED PROJECT: ', storedProjectJson)
 
               // RUN THE BELOW ONLY IF EXIST THE PROJECT JSON SAVED IN THE STORAGE
@@ -411,12 +364,9 @@ export class AuthService {
 
                 const project_name = storedProjectObject['name']
                 const project_profile_name = storedProjectObject['profile_name']
-                const project_trial_expired =
-                  storedProjectObject['trial_expired']
-                const project_trial_days_left =
-                  storedProjectObject['trial_days_left']
-                this.project_trial_expired =
-                  storedProjectObject['trial_expired']
+                const project_trial_expired = storedProjectObject['trial_expired']
+                const project_trial_days_left = storedProjectObject['trial_days_left']
+                this.project_trial_expired = storedProjectObject['trial_expired']
                 const storedProjectOH = storedProjectObject['operatingHours']
 
                 // tslint:disable-next-line:max-line-length
@@ -430,13 +380,12 @@ export class AuthService {
                   trial_days_left: project_trial_days_left,
                   operatingHours: storedProjectOH,
                 }
-                // this.logger.log('!! AUTH in auth.serv  - 1) PROJECT THAT IS PUBLISHED: ', project);
+                this.logger.log('!! AUTH in auth.serv  - 1) PROJECT THAT IS PUBLISHED: ', project);
                 // SE NN C'è IL PROJECT NAME COMUNQUE PUBBLICO PERCHè CON L'ID DEL PROGETTO VENGONO EFFETTUATE DIVERSE CALLBACK
 
                 /**** ******* ******* NEW BUG FIX ***** *** ** ***/
 
-                this.logger.log(
-                  '[AUTH-SERV] BEFORE TO PUBLISH this.project_bs.value ', this.project_bs.value)
+                this.logger.log('[AUTH-SERV] BEFORE TO PUBLISH this.project_bs.value ', this.project_bs.value)
                 if (this.project_bs.value == null) {
                   this.logger.log('[AUTH-SERV] PROJECT (get from storage) THAT IS PUBLISHED ', project)
                   this.project_bs.next(project)
@@ -494,18 +443,12 @@ export class AuthService {
           this._user_role === 'admin' ||
           this._user_role === undefined
         ) {
-          this.logger.log(
-            '[AUTH-SERV] - CHECK ROLE (GOT FROM STORAGE) »»» ',
-            this._user_role,
-          )
+          this.logger.log( '[AUTH-SERV] - CHECK ROLE (GOT FROM STORAGE) »»» ',this._user_role)
 
           this.router.navigate([`project/${project_id}/unauthorized`])
           // this.router.navigate(['/unauthorized']);
         } else {
-          this.logger.log(
-            '[AUTH-SERV] - CHECK ROLE (GOT FROM STORAGE) »»» ',
-            this._user_role,
-          )
+          this.logger.log( '[AUTH-SERV] - CHECK ROLE (GOT FROM STORAGE) »»» ', this._user_role )
         }
       }
     }
@@ -566,18 +509,12 @@ export class AuthService {
           this._user_role === 'admin' ||
           this._user_role === undefined
         ) {
-          this.logger.log(
-            '[AUTH-SERV] - CHECK ROLE (GOT FROM STORAGE) »»» ',
-            this._user_role,
-          )
+          this.logger.log( '[AUTH-SERV] - CHECK ROLE (GOT FROM STORAGE) »»» ', this._user_role )
 
           this.router.navigate([`project/${project_id}/unauthorized-access`])
           // this.router.navigate(['/unauthorized']);
         } else {
-          this.logger.log(
-            '[AUTH-SERV] - CHECK ROLE (GOT FROM STORAGE) »»» ',
-            this._user_role,
-          )
+          this.logger.log( '[AUTH-SERV] - CHECK ROLE (GOT FROM STORAGE) »»» ',this._user_role )
         }
       }
     }
@@ -871,10 +808,7 @@ export class AuthService {
 
   hasClickedGoToProjects() {
     this.project_bs.next(null)
-    this.logger.log(
-      '[AUTH-SERV] - HAS CLICKED GO TO PROJECT - PUBLISH PRJCT = ',
-      this.project_bs.next(null),
-    )
+    this.logger.log('[AUTH-SERV] - HAS CLICKED GO TO PROJECT - PUBLISH PRJCT = ',this.project_bs.next(null))
     this.logger.log('[AUTH-SERV] - HAS CLICKED GO TO PROJECT - PRJCT VALUE = ', this.project_bs.value)
     // this.logger.log('!!C-U »»»»» AUTH SERV - HAS BEEN CALLED "HAS CLICKED GOTO PROJECTS" - PUBLISH PRJCT = ', this.project_bs.next(null))
     localStorage.removeItem('project') // NOTE: questo serve????
@@ -1006,30 +940,7 @@ export class AuthService {
       // console.log('[AUTH-SERV] projectId ', projectId)
 
       if (projectId) {
-        const storedProject = localStorage.getItem(projectId)
-        if (storedProject) {
-          storedPrjctParsed = JSON.parse(storedProject)
-          // console.log('[AUTH-SERV] storedPrjctParsed ', storedPrjctParsed)
-        }
-
-
-        if (storedPrjctParsed.profile_type === 'free') {
-          if (storedPrjctParsed.trial_expired === false) {
-            projectProfileName = PLAN_NAME.B + " (trial)"
-          } else {
-            projectProfileName = "Free"
-          }
-        } else if (storedPrjctParsed.profile_type === 'payment') {
-
-          if (storedPrjctParsed.profile_name === PLAN_NAME.A) {
-            projectProfileName = PLAN_NAME.A
-          } else if (storedPrjctParsed.profile_name === PLAN_NAME.B) {
-            projectProfileName = PLAN_NAME.B
-          } else if (storedPrjctParsed.profile_name === PLAN_NAME.B) {
-            projectProfileName = PLAN_NAME.B
-          }
-
-        }
+       
         // console.log('[AUTH-SERV] projectProfileName ', projectProfileName)
         if (!isDevMode()) {
           if (window['analytics']) {

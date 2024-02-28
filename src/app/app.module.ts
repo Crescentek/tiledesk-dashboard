@@ -357,6 +357,8 @@ import { HomeCreateChatbotModalComponent } from './home-components/home-create-c
 import { HomeInviteTeammateModalComponent } from './home-components/home-create-teammate/home-invite-teammate-modal/home-invite-teammate-modal.component';
 import { HomeInviteTeammateErrorModalComponent } from './home-components/home-create-teammate/home-invite-teammate-error-modal/home-invite-teammate-error-modal.component';
 import { HomeGoToChatComponent } from './home-components/home-go-to-chat/home-go-to-chat.component';
+import { ChatbotModalComponent } from './bots/bots-list/chatbot-modal/chatbot-modal.component';
+import { ChatbotAlertComponent } from './bots/bots-list/chatbot-alert/chatbot-alert.component';
 import { KnowledgeBasesComponent } from './knowledge-bases/knowledge-bases.component';
 import { CnpTemplatesComponent } from './create-new-project/cnp-templates/cnp-templates.component';
 import { OnboardingWelcomeComponent } from './create-new-project/onboarding-welcome/onboarding-welcome.component';
@@ -365,6 +367,33 @@ import { AutomationsComponent } from './automations/automations.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { HomeCdsComponent } from './home-components/home-cds/home-cds.component';
 import { AutomationStaticComponent } from './static-pages/automation-static/automation-static.component';
+// import { KbModalComponent } from './knowledge-bases/kb-modal/kb-modal.component';
+// import { KbAlertComponent } from './knowledge-bases/kb-alert/kb-alert.component';
+
+import { IntegrationsComponent } from './integrations/integrations.component';
+import { OpenaiIntegrationComponent } from './integrations/list/openai-integration/openai-integration.component';
+import { QaplaIntegrationComponent } from './integrations/list/qapla-integration/qapla-integration.component';
+import { CustomerioIntegrationComponent } from './integrations/list/customerio-integration/customerio-integration.component';
+import { HubspotIntegrationComponent } from './integrations/list/hubspot-integration/hubspot-integration.component';
+import { BrevoIntegrationComponent } from './integrations/list/brevo-integration/brevo-integration.component';
+import { GsheetsIntegrationComponent } from './integrations/list/gsheets-integration/gsheets-integration.component';
+import { MakeIntegrationComponent } from './integrations/list/make-integration/make-integration.component';
+import { IntegrationHeaderComponent } from './integrations/base-components/integration-header/integration-header.component';
+
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { ModalPageUrlComponent } from './knowledge-bases/modals/modal-page-url/modal-page-url.component';
+import { ModalSiteMapComponent } from './knowledge-bases/modals/modal-site-map/modal-site-map.component';
+import { ModalTextFileComponent } from './knowledge-bases/modals/modal-text-file/modal-text-file.component';
+import { ModalGptKeyComponent } from './knowledge-bases/modals/modal-gpt-key/modal-gpt-key.component';
+import { ModalDeleteKnowledgeBaseComponent } from './knowledge-bases/modals/modal-delete-knowledge-base/modal-delete-knowledge-base.component';
+import { ModalPreviewKnowledgeBaseComponent } from './knowledge-bases/modals/modal-preview-knowledge-base/modal-preview-knowledge-base.component';
+import { ModalDetailKnowledgeBaseComponent } from './knowledge-bases/modals/modal-detail-knowledge-base/modal-detail-knowledge-base.component';
+import { KnowledgeBaseTableComponent } from './knowledge-bases/modals/knowledge-base-table/knowledge-base-table.component';
+import { ModalErrorComponent } from './knowledge-bases/modals/modal-error/modal-error.component';
+import { KnowledgeBasesPreviousComponent } from './knowledge-bases-previous/knowledge-bases-previous.component';
+import { UserModalComponent } from './users/user-modal/user-modal.component';
 
 
 
@@ -640,12 +669,36 @@ const appInitializerFn = (appConfig: AppConfigService, brandService: BrandServic
     HomeInviteTeammateModalComponent,
     HomeInviteTeammateErrorModalComponent,
     HomeGoToChatComponent,
+    ChatbotModalComponent,
+    ChatbotAlertComponent,
     CnpTemplatesComponent,
     OnboardingWelcomeComponent,
     HomeNewsFeedModalComponent,
     AutomationsComponent,
     HomeCdsComponent,
-    AutomationStaticComponent
+    AutomationStaticComponent,
+    // KbModalComponent,
+    // KbAlertComponent,
+    IntegrationsComponent,
+    OpenaiIntegrationComponent,
+    QaplaIntegrationComponent,
+    CustomerioIntegrationComponent,
+    HubspotIntegrationComponent,
+    MakeIntegrationComponent,
+    BrevoIntegrationComponent,
+    GsheetsIntegrationComponent,
+    IntegrationHeaderComponent,
+    ModalPageUrlComponent,
+    ModalSiteMapComponent,
+    ModalTextFileComponent,
+    ModalGptKeyComponent,
+    ModalDeleteKnowledgeBaseComponent,
+    ModalPreviewKnowledgeBaseComponent,
+    ModalDetailKnowledgeBaseComponent,
+    KnowledgeBaseTableComponent,
+    ModalErrorComponent,
+    KnowledgeBasesPreviousComponent,
+    UserModalComponent
   ],
   imports: [
     TooltipModule.forRoot(CutomTooltipOptions as TooltipOptions),
@@ -672,6 +725,9 @@ const appInitializerFn = (appConfig: AppConfigService, brandService: BrandServic
     MatDialogModule,
     MatCheckboxModule,
     MatAutocompleteModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
     /* PRIVATE */
     PricingModule,
     ChatbotDesignStudioModule,

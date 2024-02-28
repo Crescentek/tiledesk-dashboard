@@ -80,6 +80,7 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
   languageNotSupported: boolean = false
   private unsubscribe$: Subject<any> = new Subject<any>();
   prjct_profile_name: string;
+
   constructor(
     private projectService: ProjectService,
     private router: Router,
@@ -102,7 +103,7 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
     this.companyLogo_height = brand['recent_project_page']['company_logo_height'];
     this.companyLogo_top = brand['recent_project_page']['company_logo_top'];
     this.companyLogo_left = brand['recent_project_page']['company_logo_left'];
-    
+
 
     this.company_brand_color = brand['BRAND_PRIMARY_COLOR'];
     // console.log('[PROJECTS] company_brand_color' ,this.company_brand_color)
@@ -121,7 +122,7 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
 
     // this.checkUserImageUploadIsComplete();
     // this.checkUserImageExist();
-   
+
     // this.subscribeToLogoutPressedinSidebarNavMobilePrjctUndefined();
     // this.getStorageBucket();
     this.getOSCODE();
@@ -129,8 +130,8 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
   }
 
   ngAfterContentInit(): void {
-    if (this.company_brand_color)  {
-      this.element.nativeElement.querySelector('.project_background').style.setProperty('--brandColor' , this.company_brand_color)
+    if (this.company_brand_color) {
+      this.element.nativeElement.querySelector('.project_background').style.setProperty('--brandColor', this.company_brand_color)
       // console.log('[PROJECTS] project_background', this.element.nativeElement.querySelector('.project_background')) 
       // this.element.nativeElement.querySelector('#create-prjct-card > .card-add-project-icon').style.setProperty('--brandColor' , this.company_brand_color)
       // this.element.nativeElement.querySelector('#create-prjct-card > .card-add-project-text').style.setProperty('--brandColor' , this.company_brand_color)
@@ -144,6 +145,9 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
           this.usersService.unsubsToWS_CurrentUser_allProject(project.id_project._id, project._id)
         }
       });
+
+      this.unsubscribe$.next();
+      this.unsubscribe$.complete();
     }
 
     this.unsubscribe$.next();
@@ -152,7 +156,7 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
 
   getLoggedUserAndCheckProfilePhoto() {
     // console.log('window.opener.location ', window.opener.location )
-   
+
     this.auth.user_bs.subscribe((user) => {
       // console.log('[PROJECTS] - USER  ', user)
       this.user = user;
@@ -184,13 +188,17 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
 
 
         if (!tranlatedLanguage.includes(this.dsbrd_lang)) {
-          this.logger.log('[PROJECTS] - browser_lang includes', tranlatedLanguage.includes(this.dsbrd_lang))
+          // console.log('dsbrd_lang', this.dsbrd_lang)
+          // console.log('tranlatedLanguage', tranlatedLanguage)
+          // console.log('[PROJECTS] - browser_lang includes', tranlatedLanguage.includes(this.dsbrd_lang))
 
           this.logger.log('[PROJECTS] - browser_lang', this.dsbrd_lang)
           this.flag_url = "assets/img/language_flag/en.png"
-          this.languageNotSupported = true
+          this.languageNotSupported = true;
+          // console.log('languageNotSupported', this.languageNotSupported)
         } else {
-          this.languageNotSupported = false
+          this.languageNotSupported = false;
+          // console.log('languageNotSupported', this.languageNotSupported)
         }
 
 
@@ -410,7 +418,11 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
 
     this.logger.log('[PROJECTS] - GO TO HOME - PROJECT status ', project_status)
 
-    project['is_selected'] = true
+    project['is_selected'] = true;
+
+    if (project_status === 0) {
+      project['is_selected'] = false;
+    }
 
     // const loadingInProjectCardEle = <HTMLElement>document.querySelector('#loading_' + project_id);
     // loadingInProjectCardEle.classList.add("display_loading")
@@ -432,7 +444,7 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
         operatingHours: activeOperatingHours
       }
 
-      this.auth.projectSelected(project)
+      this.auth.projectSelected(project, 'projects')
       this.logger.log('[PROJECTS] - GO TO HOME - PROJECT ', project)
 
       setTimeout(() => {
@@ -490,7 +502,7 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
   }
 
 
- 
+
   /**
    * GET PROJECTS AND SAVE IN THE STORAGE: PROJECT ID - PROJECT NAME - USE ROLE   */
   getProjectsAndSaveInStorage() {
@@ -508,54 +520,85 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
 
 
         this.projects.forEach(project => {
-          this.logger.log('[PROJECTS] - SET PROJECT IN STORAGE > project ', project)
+          // console.log('[PROJECTS] - SET PROJECT IN STORAGE > project ', project)
           project['is_selected'] = false
 
           if (project.id_project && project.id_project.profile.type === 'free') {
             if (project.id_project && project.id_project.trialExpired === false) {
               // this.getProPlanTrialTranslation(project);
-              this.prjct_profile_name = PLAN_NAME.B + " plan (trial)";
-              project['prjct_profile_name'] = this.prjct_profile_name;
-              project['plan_badge_background_type'] = 'b_plan_badge';
+              if (project.id_project.profile.name === 'free') {
+                this.prjct_profile_name = PLAN_NAME.B + " plan (trial)";
+                project['prjct_profile_name'] = this.prjct_profile_name;
+                project['plan_badge_background_type'] = 'b_plan_badge';
+              } else if (project.id_project.profile.name === 'Sandbox') {
+                this.prjct_profile_name = PLAN_NAME.E + " plan (trial)";
+                project['prjct_profile_name'] = this.prjct_profile_name;
+                project['plan_badge_background_type'] = 'b_plan_badge';
+              }
             } else {
               // this.getPaidPlanTranslation(project, project.id_project.profile.name)
-              this.prjct_profile_name = "Free plan";
-              project['prjct_profile_name'] = this.prjct_profile_name;
-              project['plan_badge_background_type'] = 'free_plan_badge'
+              if (project.id_project.profile.name === 'free') {
+                this.prjct_profile_name = "Free plan";
+                project['prjct_profile_name'] = this.prjct_profile_name;
+                project['plan_badge_background_type'] = 'free_plan_badge'
+              } else if (project.id_project.profile.name === 'Sandbox') {
+                this.prjct_profile_name = "Sandbox plan";
+                project['prjct_profile_name'] = this.prjct_profile_name;
+                project['plan_badge_background_type'] = 'free_plan_badge'
+              }
             }
 
           } else if (project.id_project && project.id_project.profile.type === 'payment') {
             // this.getPaidPlanTranslation(project, project.id_project.profile.name);
             // if ( project.id_project.isActiveSubscription === true) {
-              if (project.id_project.profile.name  === PLAN_NAME.A ) {
-                if(!project.id_project.profile.extra3 ) {
+            if (project.id_project.profile.name === PLAN_NAME.A) {
+              if (!project.id_project.profile.extra3) {
                 this.prjct_profile_name = PLAN_NAME.A + " plan";
                 project['prjct_profile_name'] = this.prjct_profile_name;
-                } else {
-                  this.prjct_profile_name = PLAN_NAME.A + ' plan ' + '(' + APP_SUMO_PLAN_NAME[project.id_project.profile.extra3] + ')'
-                  project['prjct_profile_name'] = this.prjct_profile_name;
-                }
-                project['plan_badge_background_type'] = 'a_plan_badge'
-              } else if (project.id_project.profile.name === PLAN_NAME.B) { 
-                if(!project.id_project.profile.extra3 ) {
+              } else {
+                this.prjct_profile_name = PLAN_NAME.A + ' plan ' + '(' + APP_SUMO_PLAN_NAME[project.id_project.profile.extra3] + ')'
+                project['prjct_profile_name'] = this.prjct_profile_name;
+              }
+              project['plan_badge_background_type'] = 'a_plan_badge'
+            } else if (project.id_project.profile.name === PLAN_NAME.B) {
+              if (!project.id_project.profile.extra3) {
                 project['prjct_profile_name'] = this.prjct_profile_name;
                 this.prjct_profile_name = PLAN_NAME.B + " plan";
-                } else {
-                  this.prjct_profile_name = PLAN_NAME.B + ' plan ' + '(' + APP_SUMO_PLAN_NAME[project.id_project.profile.extra3] + ')'
-                }
-                project['prjct_profile_name'] = this.prjct_profile_name;
-                project['plan_badge_background_type'] = 'b_plan_badge'
-              }  else if (project.id_project.profile.name === PLAN_NAME.C) { 
-                this.prjct_profile_name = PLAN_NAME.C + " plan";
-                project['prjct_profile_name'] = this.prjct_profile_name;
-                project['plan_badge_background_type'] = 'c_plan_badge'
-              } else if (project.id_project.profile.name  !== PLAN_NAME.A && project.id_project.profile.name  !== PLAN_NAME.B && project.id_project.profile.name  !== PLAN_NAME.C) {
-                this.prjct_profile_name = project.id_project.profile.name + ' plan (UNSUPPORTED)'
-                // console.log('project.id_project.profile.name' ,project.id_project.profile.name)
-                project['prjct_profile_name'] = this.prjct_profile_name ;
-                project['plan_badge_background_type'] = 'unsupported_plan_badge'
+              } else {
+                this.prjct_profile_name = PLAN_NAME.B + ' plan ' + '(' + APP_SUMO_PLAN_NAME[project.id_project.profile.extra3] + ')'
               }
-              
+              project['prjct_profile_name'] = this.prjct_profile_name;
+              project['plan_badge_background_type'] = 'b_plan_badge'
+            } else if (project.id_project.profile.name === PLAN_NAME.C) {
+              this.prjct_profile_name = PLAN_NAME.C + " plan";
+              project['prjct_profile_name'] = this.prjct_profile_name;
+              project['plan_badge_background_type'] = 'c_plan_badge'
+            } else if (project.id_project.profile.name === PLAN_NAME.D) {
+              this.prjct_profile_name = PLAN_NAME.D + " plan";
+              project['prjct_profile_name'] = this.prjct_profile_name;
+              project['plan_badge_background_type'] = 'a_plan_badge'
+            } else if (project.id_project.profile.name === PLAN_NAME.E) {
+              this.prjct_profile_name = PLAN_NAME.E + " plan";
+              project['prjct_profile_name'] = this.prjct_profile_name;
+              project['plan_badge_background_type'] = 'b_plan_badge'
+            } else if (project.id_project.profile.name === PLAN_NAME.F) {
+              this.prjct_profile_name = PLAN_NAME.F + " plan";
+              project['prjct_profile_name'] = this.prjct_profile_name;
+              project['plan_badge_background_type'] = 'c_plan_badge'
+            } else if (
+              project.id_project.profile.name !== PLAN_NAME.A &&
+              project.id_project.profile.name !== PLAN_NAME.B &&
+              project.id_project.profile.name !== PLAN_NAME.C &&
+              project.id_project.profile.name !== PLAN_NAME.D &&
+              project.id_project.profile.name !== PLAN_NAME.E &&
+              project.id_project.profile.name !== PLAN_NAME.F
+            ) {
+              this.prjct_profile_name = project.id_project.profile.name + ' plan (UNSUPPORTED)'
+              // console.log('project.id_project.profile.name' ,project.id_project.profile.name)
+              project['prjct_profile_name'] = this.prjct_profile_name;
+              project['plan_badge_background_type'] = 'unsupported_plan_badge'
+            }
+
             // } 
             // else if ( project.id_project.isActiveSubscription === false) {}
 
@@ -585,7 +628,7 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
             }
             this.listenTocurrentUserWSAvailabilityAndBusyStatusForProject$()
 
-          
+
             /***  ADDED TO KNOW IF THE CURRENT USER IS AVAILABLE IN SOME PROJECT
              *    ID USED TO DISPLAY OR NOT THE MSG 'Attention, if you don't want to receive requests...' IN THE LOGOUT MODAL  ***/
             if (project.user_available === true) {
@@ -616,22 +659,31 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
     let IS_AVAILABLE = null
     let profilestatus = ''
     if (selectedStatusValue === 'available') {
+
       IS_AVAILABLE = true
+      // console.log('[PROJECTS] changeAvailabilityState IS_AVAILABLE' , IS_AVAILABLE , ' profilestatus ', profilestatus) 
     } else if (selectedStatusValue === 'unavailable') {
       IS_AVAILABLE = false
+      // console.log('[PROJECTS] changeAvailabilityState IS_AVAILABLE' , IS_AVAILABLE , ' profilestatus ', profilestatus)
+
     } else if (selectedStatusValue === 'inactive') {
       IS_AVAILABLE = false
       profilestatus = 'inactive'
+      // console.log('[PROJECTS] changeAvailabilityState IS_AVAILABLE' , IS_AVAILABLE , ' profilestatus ', profilestatus)
     }
     // console.log('[PROJECTS] - changeAvailabilityState projectid', projectid, ' selectedStatusValue: ', selectedStatusValue);
     this.usersService.updateCurrentUserAvailability(projectid, IS_AVAILABLE, profilestatus).subscribe((projectUser: any) => { // non 
 
-    //  console.log('[PROJECTS] - PROJECT-USER UPDATED ', projectUser)
+      //  console.log('[PROJECTS] - PROJECT-USER UPDATED ', projectUser)
       // NOTIFY TO THE USER SERVICE WHEN THE AVAILABLE / UNAVAILABLE BUTTON IS CLICKED
       // this.usersService.availability_btn_clicked(true)
       this.projects.forEach(project => {
         if (project.id_project._id === projectUser.id_project) {
+          // console.log('[PROJECTS] - PROJECT-USER UPDATED ', projectUser)
           project['ws_projct_user_available'] = projectUser.user_available;
+          // console.log('[PROJECTS] - changeAvailabilityState  projectUser.user_available',  projectUser.user_available);
+          // console.log('[PROJECTS] - changeAvailabilityState  projectUser.profileStatus',  projectUser.profileStatus);
+          project['ws_projct_user_profileStatus'] = projectUser.profileStatus
           // project['ws_projct_user_isBusy'] = projectUser['isBusy']
         }
       });
@@ -659,7 +711,8 @@ export class ProjectsComponent implements OnInit, AfterContentInit, OnDestroy {
             if (projectUser['profileStatus']) {
               // console.log('PROJECT COMP $UBSC  TO WS USER AVAILABILITY & BUSY STATUS DATA (listenTo)', projectUser);
               project['ws_projct_user_profileStatus'] = projectUser['profileStatus']
-            } 
+              // console.log('PROJECT COMP $UBSC  TO WS USER AVAILABILITY & BUSY STATUS DATA (listenTo) projectUser[profileStatus]', projectUser['profileStatus']);
+            }
           }
         });
 

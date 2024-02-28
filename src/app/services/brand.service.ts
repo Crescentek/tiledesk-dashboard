@@ -49,7 +49,7 @@ export class BrandService {
       },
       "recent_project_page": {
         "company_logo_width": "130px",
-        "company_logo_height": "38px"
+        "company_logo_height": "30px"
       },
       "signup_page": {
         "display_terms_and_conditions_link": true,
@@ -80,6 +80,7 @@ export class BrandService {
       COMPANY_SITE_NAME: "tiledesk.com",
       COMPANY_SITE_URL: "https://www.tiledesk.com",
       CONTACT_US_EMAIL: "support@tiledesk.com",
+      CONTACT_SALES_EMAIL: "sales@tiledesk.com",
       BRAND_PRIMARY_COLOR: "#f0806f",
       BRAND_SECONDARY_COLOR: "#f0806f",
 

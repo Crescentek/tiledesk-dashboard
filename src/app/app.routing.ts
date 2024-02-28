@@ -150,6 +150,9 @@ import { OnboardingWelcomeComponent } from './create-new-project/onboarding-welc
 import { AutomationsComponent } from './automations/automations.component';
 
 
+import { KnowledgeBasesPreviousComponent } from './knowledge-bases-previous/knowledge-bases-previous.component';
+import { IntegrationsComponent } from './integrations/integrations.component';
+
 
 
 const routes: Routes = [
@@ -467,6 +470,12 @@ const routes: Routes = [
   // KNOWLEDGE BASES
   { path: 'project/:projectid/knowledge-bases', component: KnowledgeBasesComponent, canActivate: [AuthGuard]},
   { path: 'project/:projectid/knowledge-bases/:calledby', component: KnowledgeBasesComponent, canActivate: [AuthGuard]}, // when called from home
+
+
+  // KNOWLEDGE BASES OLD
+  { path: 'project/:projectid/knowledge-bases-pre', component: KnowledgeBasesPreviousComponent, canActivate: [AuthGuard]},
+  { path: 'project/:projectid/knowledge-bases-pre/:calledby', component: KnowledgeBasesPreviousComponent, canActivate: [AuthGuard]},
+  
   // RESET PASSORD (i.e. page forgot psw & reset psw )
   { path: 'forgotpsw', component: ResetPswComponent },
   { path: 'resetpassword/:resetpswrequestid', component: ResetPswComponent },
@@ -492,6 +501,7 @@ const routes: Routes = [
   { path: 'project/:projectid/map-request', component: MapRequestComponent, canActivate: [AuthGuard] },
   { path: 'project/:projectid/email', component: EmailTicketingComponent, canActivate: [AuthGuard, ProjectProfileGuard] },
   { path: 'project/:projectid/email-demo', component: EmailTicketingStaticComponent, canActivate: [AuthGuard] },
+  { path: 'project/:projectid/integrations', component: IntegrationsComponent, canActivate: [AuthGuard] },
 
 
 ];
