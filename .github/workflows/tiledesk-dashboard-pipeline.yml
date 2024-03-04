@@ -31,7 +31,6 @@ jobs:
 
     - name: Push image to Amazon ECR
       run: |
-        export TAG=$(git rev-parse --short=7 HEAD)  # Ensure TAG is set
         docker push ${{ secrets.ACCOUNT_ID }}.dkr.ecr.eu-north-1.amazonaws.com/${{ secrets.IMAGE_NAME }}:latest
 
     - name: Update ECS service
