@@ -24,8 +24,7 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t ${{ secrets.IMAGE_NAME }} .
-        export TAG=$(git rev-parse --short=7 HEAD)  # Get abbreviated commit hash
-        docker tag ${{ secrets.IMAGE_NAME }}:latest ${{ secrets.ACCOUNT_ID }}.dkr.ecr.eu-north-1.amazonaws.com/${{ secrets.IMAGE_NAME }}:$TAG
+        docker tag ${{ secrets.IMAGE_NAME }}:latest ${{ secrets.ACCOUNT_ID }}.dkr.ecr.eu-north-1.amazonaws.com/${{ secrets.IMAGE_NAME }}:latest
 
     - name: Login to Amazon ECR
       run: aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin ${{ secrets.ACCOUNT_ID }}.dkr.ecr.eu-north-1.amazonaws.com
@@ -33,7 +32,7 @@ jobs:
     - name: Push image to Amazon ECR
       run: |
         export TAG=$(git rev-parse --short=7 HEAD)  # Ensure TAG is set
-        docker push ${{ secrets.ACCOUNT_ID }}.dkr.ecr.eu-north-1.amazonaws.com/${{ secrets.IMAGE_NAME }}:$TAG
+        docker push ${{ secrets.ACCOUNT_ID }}.dkr.ecr.eu-north-1.amazonaws.com/${{ secrets.IMAGE_NAME }}:latest
 
     - name: Update ECS service
       run: |
