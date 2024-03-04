@@ -37,4 +37,4 @@ jobs:
 
     - name: Update ECS service
       run: |
-        aws ecs update-service --cluster ${{ secrets.ECS_CLUSTER_NAME }} --service ${{ secrets.ECS_SERVICE_NAME }} --force-new-deployment
+        aws ecs update-service --cluster ${{ secrets.ECS_CLUSTER_NAME }} --service tiledesk-dashboard-service --force-new-deployment
