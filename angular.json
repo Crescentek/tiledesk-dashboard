@@ -229,5 +229,8 @@
     "@schematics/angular:directive": {
       "prefix": "appdashboard"
     }
+  },
+  "cli": {
+    "analytics": "dfc44097-1d5a-4599-bce5-f7c405dce7f9"
   }
 }

@@ -4,7 +4,13 @@ import { Location } from '@angular/common';
 import { LoggerService } from '../services/logger/logger.service';
 import { PLAN_NAME, URL_understanding_default_roles } from './../utils/util';
 import { BrandService } from 'app/services/brand.service';
+import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 const swal = require('sweetalert');
+const Swal = require('sweetalert2')
+// import Swal from 'sweetalert2';
+// import Swal from 'sweetalert2';
+
 declare var $: any;
 /// Notify users about errors and other helpful stuff
 export interface Msg {
@@ -68,23 +74,30 @@ export class NotifyService {
 
   public URL_UNDERSTANDING_DEFAULT_ROLES = URL_understanding_default_roles
   public displayContactUsModalToUpgradePlan = 'none';
+
+  yourTrialHasEnded: string
+  upgradeNowToKeepOurAmazingFeatures: string
   constructor(
     public location: Location,
     public brandService: BrandService,
-    private logger: LoggerService
-
+    private logger: LoggerService,
+    private router: Router,
+    private translate: TranslateService
   ) {
     const brand = brandService.getBrand();
     this.salesEmail = brand['CONTACT_SALES_EMAIL'];
     this.logger.log('[NOTIFY-SERVICE] salesEmail ', this.salesEmail)
     this.hideHelpLink = brand['DOCS'];
+ 
   }
 
+ 
+
+  // Not Used
   presentContactUsModalToUpgradePlan(displayModal: boolean) {
     if (displayModal === true) {
       this.displayContactUsModalToUpgradePlan = 'block';
     }
-
   }
 
   contacUsViaEmail() {
@@ -107,18 +120,60 @@ export class NotifyService {
 
   displaySubscripionHasExpiredModal(subHasExpired: boolean, prjctPlanName: string, prjctPlanSubsEndDate: Date) {
     if (subHasExpired === true) {
-      this.displayModalSubsExpired = 'block';
+      this._prjctPlanSubsEndDate = prjctPlanSubsEndDate;
+      this._prjctPlanName = prjctPlanName;
+      Swal.fire({
+        title: this.translate.instant("Pricing.SubscriptionPaymentProblem"),
+        text: this.translate.instant('Pricing.WeWereUnableToAutomaticallyRenewYourSubscription') + '. ' + this.translate.instant("Pricing.PleaseContactUs")  + ' ' + this.translate.instant("Pricing.ToUpdateYourPaymentInformation")+ '.', 
+        icon: "warning",
+        showCloseButton: true,
+        showCancelButton: false,
+        confirmButtonText: this.translate.instant('ContactUs'),
+        confirmButtonColor: "var(--blue-light)",
+        // cancelButtonColor: "var(--red-color)",
+        focusConfirm: false,
+        // reverseButtons: true,
+      }).then((result) => { 
+        if (result.isConfirmed) {
+          this.logger.log('[NOTIFY-SERVICE] displaySubscripionHasExpiredModal result.isConfirmed',  result.isConfirmed) 
+          window.open(`mailto:${this.salesEmail}?subject=Upgrade plan`);
+        }
+  
+      });
+
+
+      // this.displayModalSubsExpired = 'block';
     }
 
     this.logger.log('[NOTIFY-SERVICE] - HasExpiredModal subHasExpired ', subHasExpired);
     this.logger.log('[NOTIFY-SERVICE] - HasExpiredModal prjctPlanName ', prjctPlanName);
     this.logger.log('[NOTIFY-SERVICE] - HasExpiredModal prjctPlanSubsEndDate ', prjctPlanSubsEndDate);
-    this._prjctPlanSubsEndDate = prjctPlanSubsEndDate;
-    this._prjctPlanName = prjctPlanName;
+    
+  
   }
+  
+  
+  // "{{'YourTrialHasEnded' | translate }}"
+  // "{{'UpgradeNowToKeepOurAmazingFeatures' | translate}}"
+  displayTrialHasExpiredModal(projectId,  yourTrialHasEnded, upgradeNowToKeepOurAmazingFeatures , upgrade) {
+    this.logger.log('displayTrialHasExpiredModal yourTrialHasEnded' , yourTrialHasEnded, 'upgradeNowToKeepOurAmazingFeatures ', upgradeNowToKeepOurAmazingFeatures )
+    Swal.fire({
+      title: yourTrialHasEnded, // "Your 14-days free trial has expired",
+      text: upgradeNowToKeepOurAmazingFeatures, //"Upgrade now to keep our amazing features",
+      icon: "warning",
+      showCloseButton: true,
+      showCancelButton: false,
+      confirmButtonText: upgrade,
+      confirmButtonColor: "var(--blue-light)",
+      // cancelButtonColor: "var(--red-color)",
+      focusConfirm: false,
+      // reverseButtons: true,
+    }).then((result) => { 
+      if (result.isConfirmed) {
+        this.router.navigate(['project/' + projectId + '/pricing']);
+      }
 
-  displayTrialHasExpiredModal() {
-    this.displayModalTrialExpired = 'block';
+    });
   }
 
   closeModalTrialExpired() {
@@ -128,8 +183,28 @@ export class NotifyService {
   displayEnterprisePlanHasExpiredModal(subHasExpired: boolean, prjctPlanName: string, prjctPlanSubsEndDate: Date) {
 
     if (subHasExpired === true) {
-      this.displayModalEnterpiseSubsExpired = 'block';
+      // this.displayModalEnterpiseSubsExpired = 'block';
+
       this.prjct_profile_name = prjctPlanName // + ' plan'
+      Swal.fire({
+        title: this.prjct_profile_name + ' ' + this.translate.instant('Pricing.HasExpired'),
+        text: this.translate.instant('Pricing.PleaseContactUs') + ' ' + this.translate.instant("Pricing.ToUpdateYourPaymentInformation"), 
+        icon: "warning",
+        showCloseButton: true,
+        showCancelButton: false,
+        confirmButtonText: this.translate.instant('ContactUs'),
+        confirmButtonColor: "var(--blue-light)",
+        // cancelButtonColor: "var(--red-color)",
+        focusConfirm: false,
+        // reverseButtons: true,
+      }).then((result) => { 
+        if (result.isConfirmed) {
+          this.logger.log('[NOTIFY-SERVICE] displayModalEnterpiseSubsExpired result.isConfirmed',  result.isConfirmed) 
+          window.open(`mailto:${this.salesEmail}?subject=Upgrade plan (${this.prjct_profile_name} expired)`);
+        }
+  
+      });
+
     }
     this.logger.log('[NOTIFY-SERVICE] - HasExpiredEnterpriseModal prjctPlanName ', prjctPlanName);
   }
@@ -151,7 +226,7 @@ export class NotifyService {
 
   // "CONTACT US - LET'S CHAT" MODAL
   _displayContactUsModal(displayModal: boolean, reason: string) {
-    // console.log('[NOTIFY-SERVICE] - _displayContactUsModal reason ', reason);
+    this.logger.log('[NOTIFY-SERVICE] - _displayContactUsModal reason ', reason);
     if (reason === 'seats_limit_reached') {
       this.showSubtitleAllOperatorsSeatsUsed = true;
       this.showSubtitleSeatsNumberExceed = false;
@@ -162,10 +237,38 @@ export class NotifyService {
       this.showSubtitleAllOperatorsSeatsUsed = false;
       this.showSubtitleSeatsNumberExceed = false;
     }
-
-    if (displayModal === true) {
-      this.displayContactUsModal = 'block';
+    let contentText = ""
+    if (reason === 'upgrade_plan') {
+      contentText = this.translate.instant('Pricing.ContactUsViaEmailToUpgradeYourPricingPlan')
+    } 
+    else if (reason === 'seats_limit_exceed' ) {
+      contentText = this.translate.instant("Pricing.TheSeatsNumberExceedsTheAllowed" ) + '. ' +  this.translate.instant('Pricing.ContactUsViaEmailToUpgradeYourPricingPlan') 
     }
+    else if (reason === 'seats_limit_reached' ) {
+      contentText = this.translate.instant("Pricing.YouCurrentlyAreUsingAllActiveOperatorSeats" ) + '. ' +  this.translate.instant('Pricing.ContactUsViaEmailToUpgradeYourPricingPlan') 
+    }
+
+    Swal.fire({
+      title: this.translate.instant('Pricing.PlanChange'),   
+      text: contentText, 
+      // html: `contentText`,
+      icon: "warning",
+      showCloseButton: true,
+      showCancelButton: false,
+      confirmButtonText: this.translate.instant('ContactUs'),
+      confirmButtonColor: "var(--blue-light)",
+      // cancelButtonColor: "var(--red-color)",
+      focusConfirm: false,
+      // reverseButtons: true,
+    }).then((result) => { 
+      if (result.isConfirmed) {
+        window.open(`mailto:${this.salesEmail}?subject=Upgrade plan`);
+      }
+    });
+
+    // if (displayModal === true) {
+    //   this.displayContactUsModal = 'block';
+    // }
   }
 
   closeContactUsModal() {
@@ -173,22 +276,47 @@ export class NotifyService {
   }
 
   _displayContactOwnerModal(displayModal: boolean, reason: string) {
-    // console.log('[NOTIFY-SERVICE] - _displayContactOwnerModal reason ', reason);
+    const el = document.createElement('div')
+    this.logger.log('[NOTIFY-SERVICE] - _displayContactOwnerModal reason ', reason);
     if (reason === 'seats_limit_reached') {
-      this.showSubtitleAllOperatorsSeatsUsed = true;
-      this.showSubtitleSeatsNumberExceed = false;
+      // this.showSubtitleAllOperatorsSeatsUsed = true;
+      // this.showSubtitleSeatsNumberExceed = false;
+      el.innerHTML =  this.translate.instant("Pricing.YouCurrentlyAreUsingAllActiveOperatorSeats") + '. ' + this.translate.instant("Pricing.OnlyOwnerCanManageSeatsNumber") + '. ' +  '<br>' + this.translate.instant("Pricing.ContactTheProjectOwner") + '.'
     } else if (reason === 'seats_limit_exceed') {
-      this.showSubtitleSeatsNumberExceed = true;
-      this.showSubtitleAllOperatorsSeatsUsed = false;
-    } else {
-      this.showSubtitleAllOperatorsSeatsUsed = false;
-      this.showSubtitleSeatsNumberExceed = false;
+      // this.showSubtitleSeatsNumberExceed = true;
+      // this.showSubtitleAllOperatorsSeatsUsed = false;
+      el.innerHTML =  this.translate.instant("Pricing.TheSeatsNumberExceedsTheAllowed") + '. ' + this.translate.instant("Pricing.OnlyOwnerCanManageSeatsNumber") + '. ' + '<br>' + this.translate.instant("Pricing.ContactTheProjectOwner") + '.'
+    } else if (reason === 'upgrade_plan') {
+      // this.showSubtitleAllOperatorsSeatsUsed = false;
+      // this.showSubtitleSeatsNumberExceed = false;
+
+      el.innerHTML =  this.translate.instant("Pricing.OnlyOwnerCanManageSeatsNumber") + '. ' + '<br>' + this.translate.instant("Pricing.ContactTheProjectOwner") + '.'
     }
 
+    Swal.fire({
+      // title: yourTrialHasEnded, // "Your 14-days free trial has expired",
+      // text: upgradeNowToKeepOurAmazingFeatures, //"Upgrade now to keep our amazing features",
+      // content: el,
+      title: this.translate.instant("Pricing.PlanChange"),
+      html: el,
+      icon: "warning",
+      showCloseButton: true,
+      showCancelButton: false,
+      confirmButtonText: "OK",
+      confirmButtonColor: "var(--blue-light)",
+      // cancelButtonColor: "var(--red-color)",
+      focusConfirm: false,
+      // reverseButtons: true,
+    })
+
+
+
     if (displayModal === true) {
-      this.displayContactOwnerModal = 'block';
+      // this.displayContactOwnerModal = 'block';
     }
   }
+
+
 
   closeContactOwnerModal() {
     this.displayContactOwnerModal = 'none';
@@ -513,6 +641,8 @@ export class NotifyService {
       icon_bckgrnd_color = '#d2291c'
     } else if (notificationColor === 2) {
       icon_bckgrnd_color = '#449d48'
+    } else if(notificationColor === 3){
+      icon_bckgrnd_color = '#ffecb5'
     }
     this.notify = $.notify({
       // icon: 'glyphicon glyphicon-warning-sign',
@@ -709,15 +839,30 @@ export class NotifyService {
     } else {
       el.innerHTML = onlyOwnerCanManageTheAccountPlanMsg + '. '
     }
-    swal({
-      // title: this.onlyOwnerCanManageTheAccountPlanMsg,
-      content: el,
+    // swal({
+    //   // title: this.onlyOwnerCanManageTheAccountPlanMsg,
+    //   content: el,
+    //   icon: "warning",
+    //   // buttons: true,
+    //   button: {
+    //     text: "OK",
+    //   },
+    //   dangerMode: false,
+    // })
+
+    Swal.fire({
+      // title: yourTrialHasEnded, // "Your 14-days free trial has expired",
+      // text: upgradeNowToKeepOurAmazingFeatures, //"Upgrade now to keep our amazing features",
+      // content: el,
+      html: el,
       icon: "warning",
-      // buttons: true,
-      button: {
-        text: "OK",
-      },
-      dangerMode: false,
+      showCloseButton: true,
+      showCancelButton: false,
+      confirmButtonText: "OK",
+      confirmButtonColor: "var(--blue-light)",
+      // cancelButtonColor: "var(--red-color)",
+      focusConfirm: false,
+      // reverseButtons: true,
     })
 
   }

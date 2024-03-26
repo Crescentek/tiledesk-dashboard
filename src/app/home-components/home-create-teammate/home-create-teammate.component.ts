@@ -15,6 +15,7 @@ import { NotifyService } from 'app/core/notify.service';
 import { HomeInviteTeammateErrorModalComponent } from './home-invite-teammate-error-modal/home-invite-teammate-error-modal.component';
 import { TranslateService } from '@ngx-translate/core';
 import { PricingBaseComponent } from 'app/pricing/pricing-base/pricing-base.component';
+import { BrandService } from 'app/services/brand.service';
 
 @Component({
   selector: 'appdashboard-home-create-teammate',
@@ -64,6 +65,12 @@ export class HomeCreateTeammateComponent extends PricingBaseComponent implements
 
   onlyOwnerCanManageTheAccountPlanMsg: string;
   learnMoreAboutDefaultRoles: string;
+  displayInviteTeammateBtn: string;
+
+
+  yourTrialHasEnded: string;
+  upgradeNowToKeepOurAmazingFeatures: string;
+  upgrade: string;
 
   constructor(
     public auth: AuthService,
@@ -75,9 +82,12 @@ export class HomeCreateTeammateComponent extends PricingBaseComponent implements
     public dialog: MatDialog,
     public prjctPlanService: ProjectPlanService,
     public notify: NotifyService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    public brandService: BrandService,
   ) {
     super(prjctPlanService, notify);
+    const brand = brandService.getBrand();
+    this.displayInviteTeammateBtn = brand['display_invite_teammate_btn'];
   }
 
   ngOnInit(): void {
@@ -603,7 +613,7 @@ export class HomeCreateTeammateComponent extends PricingBaseComponent implements
 
   openModalTrialExpired() {
     if (this.USER_ROLE === 'owner') {
-      this.notify.displayTrialHasExpiredModal();
+      this.notify.displayTrialHasExpiredModal(this.projectId,this.yourTrialHasEnded, this.upgradeNowToKeepOurAmazingFeatures, this.upgrade);
     } else {
       this.presentModalOnlyOwnerCanManageTheAccountPlan();
     }
@@ -615,6 +625,21 @@ export class HomeCreateTeammateComponent extends PricingBaseComponent implements
 
   translateString() {
     this.translateModalOnlyOwnerCanManageProjectAccount()
+    this.translate.get('Pricing.YourTrialHasEnded')
+    .subscribe((translation: any) => {
+      this.yourTrialHasEnded = translation;
+    });
+
+    this.translate.get('Pricing.UpgradeNowToKeepOurAmazingFeatures')
+    .subscribe((translation: any) => {
+      this.upgradeNowToKeepOurAmazingFeatures = translation;
+    });
+
+    this.translate.get('Upgrade')
+    .subscribe((translation: any) => {
+      this.upgrade = translation;
+    });
+
   }
   translateModalOnlyOwnerCanManageProjectAccount() {
     this.translate.get('OnlyUsersWithTheOwnerRoleCanManageTheAccountPlan')

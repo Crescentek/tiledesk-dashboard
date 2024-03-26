@@ -1,5 +1,32 @@
 # tiledesk-dashboard
 
+### 2.6.4
+- Deploys in production
+- Improves performance
+
+### 2.6.3
+- Deploys in production
+- Improves the path to the knowledge bases page on the home page
+
+### 2.6.2
+- Deploys in production
+- Improvements and bug fixing
+
+### 2.6.1
+- Deploys in production
+- Improves the Get and Save methods used for translation strings
+
+### 2.6.0
+- Deploys in production
+- Improves Knowledge Bases 
+- Adds the ability to create Knowledge Bases by adding a sitemap
+- Adds the customer.io integration
+- Fixes the bug: app cards are not all the same height
+
+### 2.5.21
+- Deploys in production
+- Adds the ability to sort chatbot by name
+
 ### 2.5.20
 - Deploys in production
 - Refactors the teammates table

@@ -999,6 +999,15 @@ my-app .main-panel .main-content .card {
   font-size: 18px;
 }
 
+.custom-swal>.swal-title {
+  color: black;
+  font-weight: 500;
+}
+
+.custom-swal>.swal-text {
+  text-align: center;
+}
+
 .swal-size-sm {
   width: 260px !important;
   background-color: var(--card-background-color);
@@ -1763,9 +1772,9 @@ appdashboard-app-store>div>div>div>div>div>div.card-content>div.available-from-b
   margin-top: -25px;
 }
 
-appdashboard-app-store>div>div>div>div>div>div.card-content>.app-store-card-no-badge {
-  height: 48px !important;
-}
+// appdashboard-app-store>div>div>div>div>div>div.card-content>.app-store-card-no-badge {
+//   height: 48px !important;
+// }
 
 appdashboard-app-store>div>div>div>div>.card-app-store {
   height: 269px;
@@ -2718,3 +2727,34 @@ li.active-item a i.settings-sidebar-icons {
 .toggle-setting-sidebar-icon:hover {
   background: var(--settings-sidebar-toggle-icon-hover-background-color);
 }
+
+/*
+ * Sweet Alert 2 
+/* ********************************** */
+.swal2-popup {
+  font-size: 1.6rem !important;
+}
+
+.swal2-title {
+  padding-top: 12px !important;
+  font-family: var(--header-font-family) !important;
+  font-weight: 500 !important;
+}
+.swal2-close:focus {
+  box-shadow: unset !important;
+}
+
+// .swal2-html-container {
+//   margin-top: 12px !important;
+// }
+
+
+
+// .swal2-icon {
+//   width: 3em !important;
+//   height: 3em !important;
+//   line-height: 3em !important;
+// }
+// .swal2-icon > .swal2-icon-content {
+//   font-size: 2.75em !important;
+// }

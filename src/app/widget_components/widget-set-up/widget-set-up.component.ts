@@ -28,12 +28,13 @@ import { ProjectPlanService } from 'app/services/project-plan.service';
 import { UploadImageService } from 'app/services/upload-image.service';
 import { UploadImageNativeService } from 'app/services/upload-image-native.service';
 
-import { AnalyticsService } from 'app/analytics/analytics-service/analytics.service';
+
 const swal = require('sweetalert');
 import { AbstractControl, FormControl } from '@angular/forms';
 import { ThemePalette } from '@angular/material/core';
 import { isDevMode } from '@angular/core';
 import { SelectOptionsTranslatePipe } from '../../selectOptionsTranslate.pipe';
+import { AnalyticsService } from 'app/services/analytics.service';
 
 @Component({
   selector: 'appdashboard-widget-set-up',
@@ -216,12 +217,6 @@ export class WidgetSetUp extends WidgetSetUpBaseComponent implements OnInit, Aft
 
   desktop_widget_is_visible: boolean = true;
   mobile_widget_is_visible: boolean = true;
-
-  // widget_status_on_page_change = [
-  //   { id: 'open', name: 'OnPageLoad' },
-  //   { id: 'close', name: 'DisplayWidget' },
-  //   { id: 'last', name: 'WidgetVisibility' },
-  // ]
 
   widget_status_on_page_change = [
     { id: 'open', name: 'Always opened' },
@@ -762,31 +757,7 @@ export class WidgetSetUp extends WidgetSetUpBaseComponent implements OnInit, Aft
       });
   }
 
-  // goToPricing() {
-  //   this.logger.log('[WIDGET-SET-UP] - goToPricing projectId ', this.id_project);
-
-  //   // if (this.payIsVisible) {
-  //   //   if (this.USER_ROLE === 'owner') {
-  //   //     if (this.prjct_profile_type === 'payment' && this.subscription_is_active === false) {
-  //   //       this.notify._displayContactUsModal(true, 'upgrade_plan');
-  //   //     } else {
-  //   //       this.router.navigate(['project/' + this.id_project + '/pricing']);
-  //   //       // this.presentModalContactUsToUpgradePlan()
-
-  //   //     }
-  //   //   } else {
-  //   //     this.presentModalOnlyOwnerCanManageTheAccountPlan();
-  //   //   }
-  //   // } else {
-  //   //   this.notify._displayContactUsModal(true, 'upgrade_plan');
-  //   // }
-  //   if (!this.appSumoProfile) {
-  //     this.presentModalFeautureAvailableFromBPlan()
-  //   } else {
-  //     this.router.navigate(['project/' + this.id_project + '/project-settings/payments']);
-  //   }
-  // }
-
+ 
   goToPricing() {
     this.logger.log('[WIDGET-SET-UP] - goToPricing projectId ', this.id_project);
 
@@ -904,51 +875,51 @@ export class WidgetSetUp extends WidgetSetUpBaseComponent implements OnInit, Aft
   
 
 
-  presentModalContactUsToUpgradePlan() {
-    this.notify.presentContactUsModalToUpgradePlan(true);
-    if (!isDevMode()) {
-      if (window['analytics']) {
+  // presentModalContactUsToUpgradePlan() {
+  //   this.notify.presentContactUsModalToUpgradePlan(true);
+  //   if (!isDevMode()) {
+  //     if (window['analytics']) {
 
-        try {
-          window['analytics'].track('Update plan', {
-            "email": this.user.email,
-          }, {
-            "context": {
-              "groupId": this.id_project
-            }
-          });
-        } catch (err) {
-          this.logger.error('track [WIDGET-SET-UP] Update plan error', err);
-        }
+  //       try {
+  //         window['analytics'].track('Update plan', {
+  //           "email": this.user.email,
+  //         }, {
+  //           "context": {
+  //             "groupId": this.id_project
+  //           }
+  //         });
+  //       } catch (err) {
+  //         this.logger.error('track [WIDGET-SET-UP] Update plan error', err);
+  //       }
 
-        let userFullname = ''
-        if (this.user.firstname && this.user.lastname) {
-          userFullname = this.user.firstname + ' ' + this.user.lastname
-        } else if (this.user.firstname && !this.user.lastname) {
-          userFullname = this.user.firstname
-        }
-        try {
-          window['analytics'].identify(this.user._id, {
-            name: userFullname,
-            email: this.user.email,
-            logins: 5,
-            plan: this.prjct_profile_name_for_segment,
-          });
-        } catch (err) {
-          this.logger.error('identify [WIDGET-SET-UP] Update plan error', err);
-        }
+  //       let userFullname = ''
+  //       if (this.user.firstname && this.user.lastname) {
+  //         userFullname = this.user.firstname + ' ' + this.user.lastname
+  //       } else if (this.user.firstname && !this.user.lastname) {
+  //         userFullname = this.user.firstname
+  //       }
+  //       try {
+  //         window['analytics'].identify(this.user._id, {
+  //           name: userFullname,
+  //           email: this.user.email,
+  //           logins: 5,
+  //           plan: this.prjct_profile_name_for_segment,
+  //         });
+  //       } catch (err) {
+  //         this.logger.error('identify [WIDGET-SET-UP] Update plan error', err);
+  //       }
 
-        try {
-          window['analytics'].group(this.id_project, {
-            name: this.projectName,
-            plan: this.prjct_profile_name_for_segment,
-          });
-        } catch (err) {
-          this.logger.error('group [WIDGET-SET-UP] Update plan error', err);
-        }
-      }
-    }
-  }
+  //       try {
+  //         window['analytics'].group(this.id_project, {
+  //           name: this.projectName,
+  //           plan: this.prjct_profile_name_for_segment,
+  //         });
+  //       } catch (err) {
+  //         this.logger.error('group [WIDGET-SET-UP] Update plan error', err);
+  //       }
+  //     }
+  //   }
+  // }
 
   // else {
   //   this.notify._displayContactUsModal(true, 'upgrade_plan');
@@ -1634,6 +1605,17 @@ export class WidgetSetUp extends WidgetSetUpBaseComponent implements OnInit, Aft
         // ---------------------------------------------------------------
         this.welcomeTitle = this.selected_translation["WELLCOME_TITLE"];
         this.welcomeMsg = this.selected_translation["WELLCOME_MSG"];
+
+        this.welcomeTitle = this.selected_translation["WELCOME_TITLE"];
+        if (this.selected_translation.hasOwnProperty("WELLCOME_TITLE") ) {
+          this.welcomeTitle = this.selected_translation["WELLCOME_TITLE"];
+        }
+
+        this.welcomeMsg = this.selected_translation["WELCOME_MSG"];
+        if (this.selected_translation.hasOwnProperty("WELLCOME_MSG") ) {
+          this.welcomeMsg = this.selected_translation["WELLCOME_MSG"];
+        }
+
         this.logger.log('[WIDGET-SET-UP] ***** selected translation - WELCOME_TITLE: ', this.welcomeTitle, ' - WELLCOME_MSG: ', this.welcomeMsg);
 
 
@@ -1969,6 +1951,8 @@ export class WidgetSetUp extends WidgetSetUpBaseComponent implements OnInit, Aft
 
     this.selected_translation["WELLCOME_TITLE"] = this.welcomeTitle;
     this.selected_translation["WELLCOME_MSG"] = this.welcomeMsg;
+    this.selected_translation["WELCOME_TITLE"] = this.welcomeTitle;
+    this.selected_translation["WELCOME_MSG"] = this.welcomeMsg;
     this.selected_translation["CALLOUT_TITLE_PLACEHOLDER"] = this.calloutTitle;
     this.selected_translation["CALLOUT_MSG_PLACEHOLDER"] = this.calloutMsg;
     this.selected_translation["LABEL_FIRST_MSG"] = this.onlineMsg;
