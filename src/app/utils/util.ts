@@ -113,6 +113,12 @@ export function htmlEntities(str) {
     // .replace(/\n/g, '<br>')
 }
 
+export function unescapeHTML (str) {
+    return String(str)
+    .replace(/&lt;/g,'<')
+    .replace(/&gt;/g,'>')
+}
+
 export function replaceEndOfLine(text) {
     // const newText =   text.replace(/\n/g, '<br>')
     const newText = text.replace(/[\n\r]/g, '<br>');
@@ -334,6 +340,16 @@ export enum KB_MAX_NUM {
     Custom = 3
 };
 
+
+export enum KB_DEFAULT_PARAMS {
+    LIMIT = 20,
+    NUMBER_PAGE = 0,
+    DIRECTION = -1,
+    SORT_FIELD = 'updatedAt'
+}
+
+export const KB_LIMIT_CONTENT = 300;
+
 // Growth
 export const featuresPlanA = [
     'CRM',
@@ -518,7 +534,7 @@ export function goToCDSVersion(router: any, chatbot: Chatbot, project_id, redire
     let dateLimit = new Date('2023-10-02T00:00:00')
     if(chatBotDate > dateLimit){
         // let urlCDS_v2 = `${redirectBaseUrl}dashboard/#/project/${project_id}/cds/${chatbot._id}/intent/0`
-        let urlCDS_v2 = `${redirectBaseUrl}#/project/${project_id}/chatbot/${chatbot._id}` //  /intent/0
+        let urlCDS_v2 = `${redirectBaseUrl}#/project/${project_id}/chatbot/${chatbot._id}/blocks` //  /intent/0
         window.open(urlCDS_v2, '_self')
     } else {
         router.navigate(['project/' + project_id + '/cds/',chatbot._id, 'intent', '0']);

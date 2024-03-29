@@ -64,6 +64,10 @@ export class HomeCreateChatbotComponent extends PricingBaseComponent implements 
   public_Key: string;
   areActivePay: boolean;
 
+  yourTrialHasEnded: string;
+  upgradeNowToKeepOurAmazingFeatures: string;
+  upgrade: string;
+
   constructor(
     public appConfigService: AppConfigService,
     public auth: AuthService,
@@ -159,6 +163,21 @@ export class HomeCreateChatbotComponent extends PricingBaseComponent implements 
     this.translate.get('LearnMoreAboutDefaultRoles')
       .subscribe((translation: any) => {
         this.learnMoreAboutDefaultRoles = translation;
+      });
+     
+      this.translate.get('Pricing.YourTrialHasEnded')
+      .subscribe((translation: any) => {
+        this.yourTrialHasEnded = translation;
+      });
+  
+      this.translate.get('Pricing.UpgradeNowToKeepOurAmazingFeatures')
+      .subscribe((translation: any) => {
+        this.upgradeNowToKeepOurAmazingFeatures = translation;
+      });
+
+      this.translate.get('Upgrade')
+      .subscribe((translation: any) => {
+        this.upgrade = translation;
       });
   }
 
@@ -473,14 +492,17 @@ export class HomeCreateChatbotComponent extends PricingBaseComponent implements 
       if (this.chatBotLimit) {
         if (this.countOfChatbots < this.chatBotLimit) {
           this.logger.log('[HOME-CREATE-CHATBOT] USECASE  countOfChatbots < chatBotLimit: RUN IMPORT CHATBOT FROM JSON')
-          this.presentModalAddBotFromScratch()
+          // this.presentModalAddBotFromScratch()
+          this.router.navigate(['project/' + this.projectId + '/bots/create/tilebot/blank']);
+
         } else if (this.countOfChatbots >= this.chatBotLimit) {
           this.logger.log('[HOME-CREATE-CHATBOT] USECASE  countOfChatbots >= chatBotLimit DISPLAY MODAL')
           this.presentDialogReachedChatbotLimit()
         }
       } else if (!this.chatBotLimit) {
         this.logger.log('[HOME-CREATE-CHATBOT] USECASE  NO chatBotLimit: RUN IMPORT CHATBOT FROM JSON')
-        this.presentModalAddBotFromScratch()
+        // this.presentModalAddBotFromScratch()
+        this.router.navigate(['project/' + this.projectId  + '/bots/create/tilebot/blank']);
       }
     } if (this.USER_ROLE === 'agent') {
       this.presentModalAgentCannotManageChatbot()
@@ -587,10 +609,10 @@ export class HomeCreateChatbotComponent extends PricingBaseComponent implements 
       this.presentModalAgentCannotManageChatbot();
     }
   }
-
+  
   openModalTrialExpired() {
     if (this.USER_ROLE === 'owner') {
-      this.notify.displayTrialHasExpiredModal();
+      this.notify.displayTrialHasExpiredModal(this.projectId, this.yourTrialHasEnded, this.upgradeNowToKeepOurAmazingFeatures, this.upgrade);
     } else {
       this.presentModalOnlyOwnerCanManageTheAccountPlan();
     }

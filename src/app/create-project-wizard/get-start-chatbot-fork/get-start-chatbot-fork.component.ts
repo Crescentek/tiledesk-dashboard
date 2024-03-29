@@ -43,6 +43,7 @@ export class GetStartChatbotForkComponent implements OnInit {
   public templateImg: string;
   public templateNameOnSite: string;
   public projects: Project[];
+  public activeProjects : Project[];
   public botid: string;
   public selectedProjectId: string;
   public projectname: string;
@@ -61,7 +62,7 @@ export class GetStartChatbotForkComponent implements OnInit {
   public URL_UNDERSTANDING_DEFAULT_ROLES = URL_understanding_default_roles
   learnMoreAboutDefaultRoles: string;
   agentsCannotManageChatbots: string;
-
+  public hideHelpLink: boolean;
   constructor(
     public brandService: BrandService,
     private projectService: ProjectService,
@@ -79,6 +80,7 @@ export class GetStartChatbotForkComponent implements OnInit {
   ) {
     const brand = brandService.getBrand();
     this.companyLogo = brand['BASE_LOGO'];
+    this.hideHelpLink= brand['DOCS'];
     // this.company_name = brand['BRAND_NAME'];
     // this.company_site_url = brand['COMPANY_SITE_URL'];
   }
@@ -193,12 +195,16 @@ export class GetStartChatbotForkComponent implements OnInit {
       if (projects) {
         this.projects = projects;
 
-        if (this.projects && this.projects.length === 1) {
+        this.activeProjects = this.projects.filter( (project) => {
+          return project.id_project.status === 100
+        });
+
+        if (this.activeProjects && this.activeProjects.length === 1) {
           // console.log('[GET START CHATBOT FORK] USE-CASE PROJECTS NO = 1')
-          this.projectName = this.projects[0].id_project.name
-          this.selectedProjectId = this.projects[0].id_project._id
+          this.projectName = this.activeProjects[0].id_project.name
+          this.selectedProjectId = this.activeProjects[0].id_project._id
           // console.log('[GET START CHATBOT FORK] this.project ', this.selectedProjectId)
-          this.project = this.projects[0].id_project;
+          this.project = this.activeProjects[0].id_project;
           // console.log('[GET START CHATBOT FORK] this.project ', this.project)
           this.getProjectBotsByPassingProjectId(this.selectedProjectId);
           this.getProjectPlan(this.project)
@@ -206,9 +212,9 @@ export class GetStartChatbotForkComponent implements OnInit {
         }
         if (projectid) {
           // console.log('[GET START CHATBOT FORK] USE-CASE PROJECTS NO > 1' , projectid)
-          if (this.projects && this.projects.length > 1) {
+          if (this.activeProjects && this.activeProjects.length > 1) {
             // console.log('[GET START CHATBOT FORK] USE-CASE PROJECTS NO > 1')
-            projects.forEach(project => {
+            this.activeProjects.forEach(project => {
               if (project.id_project.id === projectid) {
                 this.project = project.id_project
                 // console.log('[GET START CHATBOT FORK] this.project ', this.project)
@@ -345,8 +351,11 @@ export class GetStartChatbotForkComponent implements OnInit {
 
   presentModalAgentCannotManageChatbotAndGoToHome() {
     const el = document.createElement('div')
-    // el.innerHTML = onlyOwnerCanManageTheAccountPlanMsg + '. ' + "<a href='https://docs.tiledesk.com/knowledge-base/understanding-default-roles/' target='_blank'>" + learnMoreAboutDefaultRoles + "</a>"
-    el.innerHTML = this.agentsCannotManageChatbots + '. ' + `<a href=${this.URL_UNDERSTANDING_DEFAULT_ROLES} target='_blank'>` + this.learnMoreAboutDefaultRoles + "</a>"
+    if (this.hideHelpLink ) {
+      el.innerHTML = this.agentsCannotManageChatbots + '. ' + `<a href=${this.URL_UNDERSTANDING_DEFAULT_ROLES} target='_blank'>` + this.learnMoreAboutDefaultRoles + "</a>"
+    } else {
+      el.innerHTML = this.agentsCannotManageChatbots + '. '
+    }
     swal({
       // title: this.onlyOwnerCanManageTheAccountPlanMsg,
       content: el,

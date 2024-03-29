@@ -8,7 +8,8 @@ import { Component, OnInit } from '@angular/core';
 import moment from "moment"
 import { Subscription, zip } from 'rxjs';
 import { LoggerService } from '../../../services/logger/logger.service';
-import { AnalyticsService } from 'app/analytics/analytics-service/analytics.service';
+import { AnalyticsService } from 'app/services/analytics.service';
+
 @Component({
   selector: 'appdashboard-messages',
   templateUrl: './messages.component.html',
@@ -157,7 +158,7 @@ export class MessagesComponent implements OnInit {
   }
 
   agentSelected(selectedAgentId) {
-    this.logger.log("[ANALYTICS - MSGS] Selected agent: ", selectedAgentId);
+    console.log("[ANALYTICS - MSGS] Selected agent: ", selectedAgentId);
     this.lineChart.destroy();
     this.subscription.unsubscribe();
     this.getMessagesByLastNDays(this.selectedDaysId, selectedAgentId)
