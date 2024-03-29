@@ -7,6 +7,7 @@ import { AppStoreService } from 'app/services/app-store.service';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { LoggerService } from '../../services/logger/logger.service';
+import { environment } from 'environments/environment';
 
 
 @Component({
@@ -99,7 +100,7 @@ export class AppStoreInstallComponent implements OnInit {
             this.reason = 'Manage'
             // console.log("[APP-STORE-INSTALL] USE CASE MANAGE - appurl ", this.appurl);
           } else if (this.result.version === 'v2' && params.reason === 'run') {
-            this.appurl = this.result.runURL
+            this.appurl = environment.SERVER_BASE_URL + this.result.runURL
             this.reason = 'Run'
             // console.log("[APP-STORE-INSTALL] USE CASE RUN - appurl ", this.appurl);
           } else if (this.result.version === 'v2' && params.reason === 'configure') {
@@ -118,6 +119,7 @@ export class AppStoreInstallComponent implements OnInit {
               this.reason = 'Detail'
             }
           }
+          console.log(this.appurl,"resresres")
           this.auth.user_bs.subscribe((user) => {
             if (user && this.appurl !== undefined) {
               this.TOKEN = user.token
@@ -136,7 +138,7 @@ export class AppStoreInstallComponent implements OnInit {
               }
               // this.URL = this.sanitizer.bypassSecurityTrustResourceUrl(parsed_json.installActionURL + '?project_id=' + params.projectid + '&app_id=' + params.appid + '&token=' + this.TOKEN);
               this.URL = this.sanitizer.bypassSecurityTrustResourceUrl(this.appurl + qsCharacterSeparator + 'project_id=' + params.projectid + '&app_id=' + params.appid + '&token=' + this.TOKEN);
-              // console.log("[APP-STORE-INSTALL] - URL IFRAME: ", this.URL)
+              console.log("[APP-STORE-INSTALL] - URL IFRAME: ", this.URL)
               if (this.URL) {
                 setTimeout(() => {
                   this.getIframeHasLoaded(this.result)

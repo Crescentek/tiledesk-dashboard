@@ -300,14 +300,14 @@ export class PricingComponent implements OnInit, OnDestroy {
       this.PAYMENT_LINK_MONTLY_PLAN_A = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg";
       this.PAYMENT_LINK_ANNUALLY_PLAN_A = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg";
       this.PAYMENT_LINK_MONTLY_PLAN_B = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg";
-      this.PAYMENT_LINK_ANNUALLY_PLAN_B = "https://buy.stripe.com/test_fZeeVQ6TI85cglabIK";
-      this.PAYMENT_LINK_PLAN_C = "https://buy.stripe.com/test_4gw1502Ds5X4ed26ot";
+      this.PAYMENT_LINK_ANNUALLY_PLAN_B = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg";
+      this.PAYMENT_LINK_PLAN_C = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg";
 
       // New pricing test link
-      this.PAYMENT_LINK_MONTLY_PLAN_D = "https://buy.stripe.com/test_7sI150fqedpwfh6dRc",
-      this.PAYMENT_LINK_ANNUALLY_PLAN_D = "https://buy.stripe.com/test_9AQdRMb9Y4T03yo8wT", 
-      this.PAYMENT_LINK_MONTLY_PLAN_E = "https://buy.stripe.com/test_3cs8xs5PE5X4d8Y8wQ", 
-      this.PAYMENT_LINK_ANNUALLY_PLAN_E = "https://buy.stripe.com/test_9AQdRMdi699gc4U00l" 
+      this.PAYMENT_LINK_MONTLY_PLAN_D = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg",
+      this.PAYMENT_LINK_ANNUALLY_PLAN_D = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg", 
+      this.PAYMENT_LINK_MONTLY_PLAN_E = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg", 
+      this.PAYMENT_LINK_ANNUALLY_PLAN_E = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg" 
 
 
     } else if (this.TEST_PAYMENT_LINKS === false) {
@@ -317,10 +317,10 @@ export class PricingComponent implements OnInit, OnDestroy {
       // this.PAYMENT_LINK_ANNUALLY_PLAN_B = "https://buy.stripe.com/8wM14cc8ug3weKA003";
 
 
-      this.PAYMENT_LINK_MONTLY_PLAN_D = " https://buy.stripe.com/4gw0082xUeZs7i83ct"; // Basic Montly
-      this.PAYMENT_LINK_ANNUALLY_PLAN_D = "https://buy.stripe.com/9AQbIQc8u04y8mcaEW"; // Basic Annually 
-      this.PAYMENT_LINK_MONTLY_PLAN_E =  "https://buy.stripe.com/test_3cs8xs5PE5X4d8Y8wQ"; // "https://buy.stripe.com/14k0086OacRk6e4cN1"; // Premium €50.00 EUR / month
-      this.PAYMENT_LINK_ANNUALLY_PLAN_E = "https://buy.stripe.com/3cs9AI6Oa9F8gSI3cx"; // "https://buy.stripe.com/3cs6owfkGeZseKAaEU"; // Premium Annually
+      this.PAYMENT_LINK_MONTLY_PLAN_D = " https://buy.stripe.com/test_9AQdRJaPldY42Os4gg"; // Basic Montly
+      this.PAYMENT_LINK_ANNUALLY_PLAN_D = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg"; // Basic Annually 
+      this.PAYMENT_LINK_MONTLY_PLAN_E =  "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg"; // "https://buy.stripe.com/14k0086OacRk6e4cN1"; // Premium €50.00 EUR / month
+      this.PAYMENT_LINK_ANNUALLY_PLAN_E = "https://buy.stripe.com/test_9AQdRJaPldY42Os4gg"; // "https://buy.stripe.com/3cs6owfkGeZseKAaEU"; // Premium Annually
      
     }
   }
@@ -688,17 +688,17 @@ export class PricingComponent implements OnInit, OnDestroy {
   setPlansPKandCode() {
     if (this.TILEDESK_V2 === true) {
       this.logger.log('[PRICING] - TILEDESK_V2 ?', this.TILEDESK_V2)
-      this.STRIPE_LIVE_PK = 'pk_live_ED4EiI7FHgu0rv4lEHAl8pff00n2qPazOn';
-      this.LIVE_PLAN_X_MONTH_PLAN_CODE = 'plan_H3i8qRroJqwO6K';
-      this.LIVE_PLAN_X_YEAR_PLAN_CODE = 'plan_H3iDFGtPN8coKT';
-      this.LIVE_PLAN_X_DAY_20CENTS_PLAN_CODE = 'plan_H3iIUMonLu2jIW';
+      this.STRIPE_LIVE_PK = 'pk_test_51OwkzlSB8DBo5lVznoLG6XSXwIlTtLnPhkDEZvYhGezqIUuI4gWVBDI6zUHVPWz7acMruA5HVUZL0BC93RMJ19X4008SApvz95';
+      this.LIVE_PLAN_X_MONTH_PLAN_CODE = 'sub_1Ox5IuSB8DBo5lVzWW3hE5DN';
+      this.LIVE_PLAN_X_YEAR_PLAN_CODE = 'sub_1Ox5IuSB8DBo5lVzWW3hE5DN';
+      this.LIVE_PLAN_X_DAY_20CENTS_PLAN_CODE = 'sub_1Ox5IuSB8DBo5lVzWW3hE5DN';
 
     } else {
       this.logger.log('[PRICING] - TILEDESK_V2 ?', this.TILEDESK_V2)
-      this.STRIPE_LIVE_PK = 'pk_live_XcOe1UfJm9GkSgreETF7WGsc';
-      this.LIVE_PLAN_X_MONTH_PLAN_CODE = 'plan_FrXJ00oxr0akaF';
-      this.LIVE_PLAN_X_YEAR_PLAN_CODE = 'plan_FrXjIcRD20tsAN';
-      this.LIVE_PLAN_X_DAY_20CENTS_PLAN_CODE = 'plan_FqRflmxFPy6AOn';
+      this.STRIPE_LIVE_PK = 'pk_test_51OwkzlSB8DBo5lVznoLG6XSXwIlTtLnPhkDEZvYhGezqIUuI4gWVBDI6zUHVPWz7acMruA5HVUZL0BC93RMJ19X4008SApvz95';
+      this.LIVE_PLAN_X_MONTH_PLAN_CODE = 'sub_1Ox5IuSB8DBo5lVzWW3hE5DN';
+      this.LIVE_PLAN_X_YEAR_PLAN_CODE = 'sub_1Ox5IuSB8DBo5lVzWW3hE5DN';
+      this.LIVE_PLAN_X_DAY_20CENTS_PLAN_CODE = 'sub_1Ox5IuSB8DBo5lVzWW3hE5DN';
 
 
     }

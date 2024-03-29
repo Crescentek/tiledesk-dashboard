@@ -529,12 +529,12 @@ export const appSumoHighlightedFeaturesPlanATier4 = [
 
 export function goToCDSVersion(router: any, chatbot: Chatbot, project_id, redirectBaseUrl: string){
     // router.navigate(['project/' + project_id + '/cds/',chatbot._id, 'intent', '0']);
-
+let token = localStorage.getItem('tiledesk_token')
     let chatBotDate = new Date(chatbot.createdAt)
     let dateLimit = new Date('2023-10-02T00:00:00')
     if(chatBotDate > dateLimit){
         // let urlCDS_v2 = `${redirectBaseUrl}dashboard/#/project/${project_id}/cds/${chatbot._id}/intent/0`
-        let urlCDS_v2 = `${redirectBaseUrl}#/project/${project_id}/chatbot/${chatbot._id}/blocks` //  /intent/0
+        let urlCDS_v2 = `${redirectBaseUrl}#/project/${project_id}/chatbot/${chatbot._id}/blocks/${token}` //  /intent/ 
         window.open(urlCDS_v2, '_self')
     } else {
         router.navigate(['project/' + project_id + '/cds/',chatbot._id, 'intent', '0']);

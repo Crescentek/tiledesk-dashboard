@@ -288,12 +288,12 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
           app.description = app.description.slice(0, 118) + '...'
         }
         
-        if (app && app.version === "v2") {
-          if (app.installActionURL === "") {
-            // this.logger.log('APP-STORE - getApps APPS app installActionURL', app.installActionURL)
-            delete app.installActionURL
-          }
-        }
+        // if (app && app.version === "v2") {
+        //   if (app.installActionURL === "") {
+        //     // this.logger.log('APP-STORE - getApps APPS app installActionURL', app.installActionURL)
+        //     delete app.installActionURL
+        //   }
+        // }
 
       });
 
@@ -325,6 +325,7 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
   }
 
   checkPlanAndPresentModal(appTitle) {
+    console.log(this.profile_name)
     if (
       (appTitle === "WhatsApp Business" ||
         appTitle === "Facebook Messenger" ||

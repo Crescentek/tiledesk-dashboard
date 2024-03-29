@@ -517,7 +517,7 @@ export class NavbarComponent extends PricingBaseComponent implements OnInit, Aft
       if (key.includes("PAY")) {
         // this.logger.log('PUBLIC-KEY (Navbar) - key', key);
         let pay = key.split(":");
-        // this.logger.log('PUBLIC-KEY (Navbar) - pay key&value', pay);
+        this.logger.log('PUBLIC-KEY (Navbar) - pay key&value', pay);
         if (pay[1] === "F") {
           this.isVisible = false;
           // this.logger.log('PUBLIC-KEY (Navbar) - pay isVisible', this.isVisible);

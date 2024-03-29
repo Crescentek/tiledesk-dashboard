@@ -53,7 +53,7 @@ export class PaymentSuccessPageComponent implements OnInit, AfterViewInit {
       });
 
     this.getCurrentProjectAndCurrentUser();
-
+    
   }
 
   ngAfterViewInit() {
@@ -160,12 +160,12 @@ export class PaymentSuccessPageComponent implements OnInit, AfterViewInit {
       // console.log('[PRICING - PAYMENT-SUCCESS] stripe user_id:' + this.user_id);
 
       this.project_id = clientReferenceId.split("_")[1];
-      // console.log('[PRICING - PAYMENT-SUCCESS] stripe project_id: ' + this.project_id);
+      // console.log('[PRICING - PAYMENT-SUCCESS] stripe project_id: ' + this.project_id);  
 
       this.findCurrentProjectAmongAll(this.project_id)
 
       this.plan_name = clientReferenceId.split("_")[2];
-      // console.log('[PRICING - PAYMENT-SUCCESS] stripe plan_name: ' + this.plan_name);
+      console.log('[PRICING - PAYMENT-SUCCESS] stripe plan_name: ' + this.plan_name);
 
       // if (!isDevMode()) {
       if (window['analytics']) {

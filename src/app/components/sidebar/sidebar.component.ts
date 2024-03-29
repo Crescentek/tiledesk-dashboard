@@ -498,7 +498,7 @@ export class SidebarComponent implements OnInit, AfterViewInit {
 
     let keys = this.public_Key.split("-");
     this.logger.log('[SIDEBAR] PUBLIC-KEY - public_Key keys', keys)
-
+    console.log(keys,"keyskeys")
     keys.forEach(key => {
 
       if (key.includes("ANA")) {
