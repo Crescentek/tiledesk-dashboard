@@ -14,7 +14,11 @@ import { takeUntil } from 'rxjs/operators'
 import { Subject } from 'rxjs';
 import { AppConfigService } from 'app/services/app-config.service';
 import { PricingBaseComponent } from 'app/pricing/pricing-base/pricing-base.component';
+import { FaqKbService } from 'app/services/faq-kb.service';
+import { ChatbotModalComponent } from 'app/bots/bots-list/chatbot-modal/chatbot-modal.component';
+import { MatDialog } from '@angular/material/dialog';
 const swal = require('sweetalert');
+const Swal = require('sweetalert2')
 @Component({
   selector: 'appdashboard-app-store',
   templateUrl: './app-store.component.html',
@@ -49,8 +53,10 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
   USER_ROLE: string;
   public_Key: string;
   isVisiblePAY: boolean;
+  areVisiblePaidApps: boolean;
   agentCannotManageAdvancedOptions: string;
   learnMoreAboutDefaultRoles: string;
+  agentsCannotManageChatbots: string;
   tPlanParams: any;
   appIsAvailable: boolean = true;
   appSumoProfile: string;
@@ -59,6 +65,7 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
   project: any;
   callingPage: string;
   onlyOwnerCanManageTheAccountPlanMsg: string;
+  public chatBotCount: any;
   constructor(
     public appStoreService: AppStoreService,
     private router: Router,
@@ -71,6 +78,8 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
     public usersService: UsersService,
     public appConfigService: AppConfigService,
     public route: ActivatedRoute,
+    private faqKbService: FaqKbService,
+    public dialog: MatDialog,
   ) {
     super(prjctPlanService, notify);
     const brand = brandService.getBrand();
@@ -91,6 +100,7 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
     this.getLoggedUser();
     this.getRouteParams();
     this.listenToParentPostMessage()
+    this.getFaqKbByProjectId()
   }
 
 
@@ -162,13 +172,14 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
         takeUntil(this.unsubscribe$)
       )
       .subscribe((user) => {
-        this.logger.log('[BOT-CREATE] - USER GET IN HOME ', user)
+        this.logger.log('[APP-STORE] - user ', user)
 
 
         if (user) {
           this.user = user;
           this.TOKEN = user.token
           this.userId = user._id
+          this.logger.log('[APP-STORE] - userId ', this.userId)
         }
       })
   }
@@ -194,11 +205,29 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
           this.isVisiblePAY = true;
         }
       }
+
+      if (key.includes("DPA")) {
+
+        let paidApps = key.split(":");
+
+        if (paidApps[1] === "F") {
+          this.areVisiblePaidApps = false;
+          this.logger.log('APP-STORE areVisiblePaidApps ',this.areVisiblePaidApps) 
+        } else {
+          this.areVisiblePaidApps = true;
+          this.logger.log('APP-STORE areVisiblePaidApps ',this.areVisiblePaidApps) 
+        }
+      }
+
+      
     });
 
 
     if (!this.public_Key.includes("PAY")) {
       this.isVisiblePAY = false;
+    }
+    if (!this.public_Key.includes("DPA")) {
+      this.areVisiblePaidApps = false;
     }
   }
 
@@ -256,16 +285,18 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
       });
 
       this.logger.log('sendTranscriptAppIndex ', sendTranscriptAppIndex);
-      this.apps.splice(sendTranscriptAppIndex, 1);
+      if (sendTranscriptAppIndex > -1) {
+        this.apps.splice(sendTranscriptAppIndex, 1);
+      }
 
       this.apps.forEach(app => {
-
+        this.logger.log('APP-STORE - getApps APPS app ', app )
 
 
         if (app.description.length > 118) {
           app.description = app.description.slice(0, 118) + '...'
         }
-        // this.logger.log('APP-STORE - getApps APPS app ', app )
+        
         if (app && app.version === "v2") {
           if (app.installActionURL === "") {
             // this.logger.log('APP-STORE - getApps APPS app installActionURL', app.installActionURL)
@@ -651,6 +682,47 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
     window.open(url, '_blank');
   }
 
+  getFaqKbByProjectId() {
+    this.showSpinner = true
+    // this.faqKbService.getAllBotByProjectId().subscribe((faqKb: any) => {
+    this.faqKbService.getFaqKbByProjectId().subscribe((faqKb: any) => {
+      this.logger.log('[APP-STORE] - GET BOTS BY PROJECT ID', faqKb);
+      if (faqKb) {
+        this.chatBotCount = faqKb.length;
+      }
+
+    }, (error) => {
+      this.logger.error('[APP-STORE] GET BOTS ERROR ', error);
+      this.showSpinner = false;
+    }, () => {
+      this.logger.log('[APP-STORE] GET BOTS COMPLETE');
+  
+    });
+  }
+
+
+  createExternalBot(type: string) {
+   console.log('[APP-STORE] createExternalBot ', type)
+    if (this.USER_ROLE !== 'agent') {
+      if (this.chatBotLimit) {
+        if (this.chatBotCount < this.chatBotLimit) {
+          this.logger.log('[APP-STORE] USECASE  chatBotCount < chatBotLimit')
+          this.goToCreateBot(type)
+        } else if (this.chatBotCount >= this.chatBotLimit) {
+          this.logger.log('[APP-STORE] USECASE  chatBotCount >= chatBotLimit DISPLAY MODAL')
+          this.presentDialogReachedChatbotLimit()
+        }
+      } else if (!this.chatBotLimit) {
+        this.logger.log('[APP-STORE] USECASE  NO chatBotLimit: RUN PRJCTS')
+        this.goToCreateBot(type)
+      }
+    } else if (this.USER_ROLE === 'agent') {
+      this.presentModalAgentCannotManageChatbot()
+    }
+  }
+
+ 
+
   goToCreateBot(type: string) {
     //  this.logger.log('[BOT-TYPE-SELECT] Bot Type Selected type ', type)
     if (type !== 'native' && type !== 'tilebot') {
@@ -665,6 +737,28 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
     }
   }
 
+  presentDialogReachedChatbotLimit() {
+    this.logger.log('[BOTS-LIST] openDialog presentDialogReachedChatbotLimit prjct_profile_name ', this.prjct_profile_name)
+    const dialogRef = this.dialog.open(ChatbotModalComponent, {
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+      hasBackdrop: true,
+      data: {
+        projectProfile: this.prjct_profile_name,
+        subscriptionIsActive: this.subscription_is_active,
+        prjctProfileType: this.prjct_profile_type,
+        trialExpired: this.trial_expired
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      this.logger.log(`[BOTS-LIST] Dialog result: ${result}`);
+    });
+  }
+
+  presentModalAgentCannotManageChatbot() {
+    this.notify.presentModalAgentCannotManageChatbot(this.agentsCannotManageChatbots, this.learnMoreAboutDefaultRoles)
+  }
+
   goToCreateRasaBot() {
     this.router.navigate(['project/' + this.projectId + '/bot/rasa/create']);
   }
@@ -673,29 +767,72 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
   // Modals
   // -----------------------------
   presentModalFeautureAvailableFromTier2Plan(planName) {
+    this.logger.log( 'presentModalFeautureAvailableFromTier2Plan' , planName)
     const el = document.createElement('div')
     el.innerHTML = planName //this.featureAvailableFromBPlan
-    swal({
+    // swal({
+    //   // title: this.onlyOwnerCanManageTheAccountPlanMsg,
+    //   content: el,
+    //   icon: "info",
+    //   // buttons: true,
+    //   buttons: {
+    //     cancel: this.cancel,
+    //     catch: {
+    //       text: this.upgradePlan,
+    //       value: "catch",
+    //     },
+    //   },
+    //   dangerMode: false,
+    // }).then((value) => {
+    //   if (value === 'catch') {
+    //     this.logger.log('presentModalFeautureAvailableFromTier2Plan value', value)
+    //     // this.logger.log('[APP-STORE] prjct_profile_type', this.prjct_profile_type)
+    //     // this.logger.log('[APP-STORE] subscription_is_active', this.subscription_is_active)
+    //     // this.logger.log('[APP-STORE] prjct_profile_type', this.prjct_profile_type)
+    //     // this.logger.log('[APP-STORE] trial_expired', this.trial_expired)
+    //     this.logger.log('[APP-STORE] isVisiblePAY', this.isVisiblePAY)
+    //     if (this.isVisiblePAY) {
+    //       // this.logger.log('[APP-STORE] HERE 1')
+    //       if (this.USER_ROLE === 'owner') {
+    //         // this.logger.log('[APP-STORE] HERE 2')
+    //         if (this.prjct_profile_type === 'payment' && this.subscription_is_active === false) {
+    //           // this.logger.log('[APP-STORE] HERE 3')
+    //           this.notify._displayContactUsModal(true, 'upgrade_plan');
+    //         } else if (this.prjct_profile_type === 'payment' && this.subscription_is_active === true && (this.profile_name === PLAN_NAME.A || this.profile_name === PLAN_NAME.D)) {
+    //           this.notify._displayContactUsModal(true, 'upgrade_plan');
+    //         } else if (this.prjct_profile_type === 'free' && this.trial_expired === true) {
+    //           // this.logger.log('[APP-STORE] HERE 4')
+    //           this.router.navigate(['project/' + this.projectId + '/pricing']);
+    //         }
+    //       } else {
+    //         // this.logger.log('[APP-STORE] HERE 5')
+
+    //         this.presentModalOnlyOwnerCanManageTheAccountPlan();
+    //       }
+    //     } else {
+    //       // this.logger.log('[APP-STORE] HERE 6')
+    //       this.notify._displayContactUsModal(true, 'upgrade_plan');
+    //     }
+    //   }
+    // });
+
+    Swal.fire({
       // title: this.onlyOwnerCanManageTheAccountPlanMsg,
-      content: el,
-      icon: "info",
-      // buttons: true,
-      buttons: {
-        cancel: this.cancel,
-        catch: {
-          text: this.upgradePlan,
-          value: "catch",
-        },
-      },
-      dangerMode: false,
-    }).then((value) => {
-      if (value === 'catch') {
-        // this.logger.log('featureAvailableFromPlanC value', value)
+      html: el,
+      icon: "info",      
+      showCloseButton: true,
+      showCancelButton: false,
+      confirmButtonText: this.upgradePlan,
+      confirmButtonColor: "var(--blue-light)",
+      focusConfirm: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.logger.log('presentModalFeautureAvailableFromTier2Plan result', result)
         // this.logger.log('[APP-STORE] prjct_profile_type', this.prjct_profile_type)
         // this.logger.log('[APP-STORE] subscription_is_active', this.subscription_is_active)
         // this.logger.log('[APP-STORE] prjct_profile_type', this.prjct_profile_type)
         // this.logger.log('[APP-STORE] trial_expired', this.trial_expired)
-        // this.logger.log('[APP-STORE] isVisiblePAY', this.isVisiblePAY)
+        this.logger.log('[APP-STORE] isVisiblePAY', this.isVisiblePAY)
         if (this.isVisiblePAY) {
           // this.logger.log('[APP-STORE] HERE 1')
           if (this.USER_ROLE === 'owner') {
@@ -793,6 +930,18 @@ export class AppStoreComponent extends PricingBaseComponent implements OnInit, O
 
         this.learnMoreAboutDefaultRoles = translation;
       });
+
+      this.translate
+      .get('OnlyUsersWithTheOwnerRoleCanManageTheAccountPlan')
+      .subscribe((translation: any) => {
+        this.onlyOwnerCanManageTheAccountPlanMsg = translation
+      })
+
+      this.translate
+      .get('AgentsCannotManageChatbots')
+      .subscribe((translation: any) => {
+        this.agentsCannotManageChatbots = translation
+      })
 
   }
 

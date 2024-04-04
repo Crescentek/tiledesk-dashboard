@@ -1,5 +1,80 @@
 # tiledesk-dashboard
 
+### 2.6.5
+- Deploys in production
+- Improvements and bug fixing
+
+### 2.6.4
+- Deploys in production
+- Improves performance
+
+### 2.6.3
+- Deploys in production
+- Improves the path to the knowledge bases page on the home page
+
+### 2.6.2
+- Deploys in production
+- Improvements and bug fixing
+
+### 2.6.1
+- Deploys in production
+- Improves the Get and Save methods used for translation strings
+
+### 2.6.0
+- Deploys in production
+- Improves Knowledge Bases 
+- Adds the ability to create Knowledge Bases by adding a sitemap
+- Adds the customer.io integration
+- Fixes the bug: app cards are not all the same height
+
+### 2.5.21
+- Deploys in production
+- Adds the ability to sort chatbot by name
+
+### 2.5.20
+- Deploys in production
+- Refactors the teammates table
+
+### 2.5.19
+- Deploys in production
+- Fixes the bug: not all chatbot images are displayed
+- Fixes the bug: published chatbots is appearing as a draft
+
+### 2.5.18
+- Deploys in production
+- Fixes the bug: in the settings sidebar 'setAttribute' on 'Element' is not a valid attribute name
+- User profile image is called in loop
+
+### 2.5.17
+- Deploys in production
+- Fixes the bug: multiple status call in kb page
+
+### 2.5.16
+- Deploys in production
+- Improves the chatbots sidebar
+- Improves the settings sidebar
+- Externalizes style variables
+
+### 2.5.15
+- Deploys in production
+- Improvements and bug fixing
+
+### 2.5.14
+- Deploys in production
+- Fixing translations
+
+### 2.5.13
+- Deploys in production
+- Refactors the bot list page
+- Improvements and bug fixing
+
+### 2.5.13-rc2
+- Fixes the bug: check status didn't start after adding a new source
+
+### 2.5.13-rc1
+- Improves Knowledge Base 
+- Adds the customer.io integration
+
 ### 2.5.12
 - Deploys in production
 - Fixes the bug: "Settings" sidebar menu item is not active when some settings sidebar menu items are active

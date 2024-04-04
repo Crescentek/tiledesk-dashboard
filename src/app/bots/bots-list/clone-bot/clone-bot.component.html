@@ -32,10 +32,11 @@
                 <div class="col-md-12">
                     <!-- (clear)="onClearSelectedLanguage()" -->
                     <ng-select class="select-language-in-wizard" id="language_option"
+                        appendTo="body" 
                         style="margin-top: 0px; max-width: 500px;" 
                         [clearable]="false" 
                         [(ngModel)]="selectedProject"
-                        [items]="projects" 
+                        [items]="activeProjects" 
                         bindLabel="id_project.name" 
                         bindValue="id_project._id"
                         placeholder="Choose a project" 
