@@ -190,7 +190,7 @@ Run `ng build --prod --base-href ./`
 
 ## Deploy to a Web Server
 
-Copy the content of the dist folder to your Web Server (for e:g Apache or Nginx)
+Copy the content of the dist folder to your Web Server (for example:Apache or Nginx)
 
 
 ## Deploy on AWS CloudFront and AWS S3
